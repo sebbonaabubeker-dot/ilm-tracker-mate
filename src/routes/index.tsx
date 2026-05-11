@@ -322,7 +322,6 @@ function Index() {
                   <TableHead className="text-center">Kıraat</TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
-                  <TableHead className="text-center">Bugün</TableHead>
                   <TableHead className="text-center">Bu Hafta</TableHead>
                   {hocaModu && (
                     <TableHead className="w-24 text-right">İşlem</TableHead>
@@ -331,7 +330,6 @@ function Index() {
               </TableHeader>
               <TableBody>
                 {talebeler.map((t, i) => {
-                  const bugun = ilerleme(t, gunBaslangici());
                   const hafta = ilerleme(t, haftaBaslangici());
                   return (
                   <TableRow key={t.id} className="hover:bg-muted/30">
@@ -347,9 +345,6 @@ function Index() {
                     </TableCell>
                     <TableCell className="text-center tabular-nums text-muted-foreground">
                       {cuzHesapla(t.sayfa)}
-                    </TableCell>
-                    <TableCell className="text-center tabular-nums">
-                      <IlerlemeRozet sayfa={bugun} />
                     </TableCell>
                     <TableCell className="text-center tabular-nums">
                       <IlerlemeRozet sayfa={hafta} />
@@ -382,7 +377,7 @@ function Index() {
                 {talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={hocaModu ? 8 : 7}
+                      colSpan={hocaModu ? 7 : 6}
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
                       Henüz talebe yok.
@@ -503,18 +498,15 @@ function DurumRozet({ verildi }: { verildi: boolean }) {
 }
 
 function IlerlemeRozet({ sayfa }: { sayfa: number }) {
-  const cuz = sayfa / SAYFA_BASINA_CUZ;
-  const cuzMetin =
-    cuz >= 1 ? ` · ${cuz % 1 === 0 ? cuz : cuz.toFixed(1)} cüz` : "";
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${
         sayfa > 0
           ? "bg-primary/10 text-primary"
           : "bg-muted text-muted-foreground"
       }`}
     >
-      {sayfa} sf{cuzMetin}
+      {sayfa} sf
     </span>
   );
 }
