@@ -502,6 +502,23 @@ function DurumRozet({ verildi }: { verildi: boolean }) {
   );
 }
 
+function IlerlemeRozet({ sayfa }: { sayfa: number }) {
+  const cuz = sayfa / SAYFA_BASINA_CUZ;
+  const cuzMetin =
+    cuz >= 1 ? ` · ${cuz % 1 === 0 ? cuz : cuz.toFixed(1)} cüz` : "";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+        sayfa > 0
+          ? "bg-primary/10 text-primary"
+          : "bg-muted text-muted-foreground"
+      }`}
+    >
+      {sayfa} sf{cuzMetin}
+    </span>
+  );
+}
+
 function DuzenleDiyalog({
   talebe,
   onClose,
