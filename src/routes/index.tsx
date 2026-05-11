@@ -47,11 +47,14 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+type SayfaKaydi = { t: number; sayfa: number }; // t: epoch ms
+
 type Talebe = {
   id: string;
   isim: string;
   kiraat: boolean;
   sayfa: number;
+  gecmis: SayfaKaydi[];
 };
 
 const SAYFA_BASINA_CUZ = 20;
@@ -65,12 +68,39 @@ function cuzHesapla(sayfa: number) {
   return Math.min(30, Math.floor((sayfa - 1) / SAYFA_BASINA_CUZ) + 1);
 }
 
+function gunBaslangici(d = new Date()) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.getTime();
+}
+
+// Pazartesi başlangıçlı hafta
+function haftaBaslangici(d = new Date()) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  const gun = (x.getDay() + 6) % 7; // Pzt=0
+  x.setDate(x.getDate() - gun);
+  return x.getTime();
+}
+
+function ilerleme(t: Talebe, esik: number) {
+  // esik anından önceki en son sayfa değerini bul; yoksa ilk geçmiş kaydı
+  const oncekiler = t.gecmis.filter((g) => g.t < esik);
+  const baz =
+    oncekiler.length > 0
+      ? oncekiler[oncekiler.length - 1].sayfa
+      : t.gecmis[0]?.sayfa ?? t.sayfa;
+  return Math.max(0, t.sayfa - baz);
+}
+
 function varsayilanTalebeler(): Talebe[] {
+  const simdi = Date.now();
   return Array.from({ length: 42 }, (_, i) => ({
     id: `t-${i + 1}`,
     isim: `Talebe ${i + 1}`,
     kiraat: false,
     sayfa: 1,
+    gecmis: [{ t: simdi, sayfa: 1 }],
   }));
 }
 
