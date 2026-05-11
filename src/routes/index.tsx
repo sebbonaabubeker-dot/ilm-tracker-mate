@@ -263,22 +263,31 @@ function TalebeKart({
               <Label className="text-xs text-muted-foreground">Sayfa (1-604)</Label>
               <Input
                 type="number"
+                inputMode="numeric"
                 min={1}
                 max={604}
-                value={talebe.sayfa}
-                onChange={(e) => {
-                  const n = Math.max(1, Math.min(604, Number(e.target.value) || 1));
-                  onChange({ sayfa: n });
+                value={sayfaTaslak}
+                onChange={(e) => sayfaDegistir(e.target.value)}
+                onBlur={() => {
+                  if (sayfaHata) {
+                    setSayfaTaslak(String(talebe.sayfa));
+                    setSayfaHata(null);
+                  }
                 }}
+                aria-invalid={sayfaHata ? true : undefined}
+                className={sayfaHata ? "border-destructive focus-visible:ring-destructive" : ""}
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Cüz</Label>
+              <Label className="text-xs text-muted-foreground">Cüz (otomatik)</Label>
               <div className="flex h-9 items-center rounded-md border border-input bg-secondary/40 px-3 text-sm font-medium text-secondary-foreground">
                 {cuz}. cüz
               </div>
             </div>
           </div>
+          {sayfaHata && (
+            <p className="text-xs text-destructive">{sayfaHata}</p>
+          )}
 
           <div className="flex gap-2">
             <Button
