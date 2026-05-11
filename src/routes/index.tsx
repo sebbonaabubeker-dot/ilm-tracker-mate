@@ -47,11 +47,14 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+type SayfaKaydi = { t: number; sayfa: number }; // t: epoch ms
+
 type Talebe = {
   id: string;
   isim: string;
   kiraat: boolean;
   sayfa: number;
+  gecmis: SayfaKaydi[];
 };
 
 const SAYFA_BASINA_CUZ = 20;
@@ -65,12 +68,39 @@ function cuzHesapla(sayfa: number) {
   return Math.min(30, Math.floor((sayfa - 1) / SAYFA_BASINA_CUZ) + 1);
 }
 
+function gunBaslangici(d = new Date()) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.getTime();
+}
+
+// Pazartesi başlangıçlı hafta
+function haftaBaslangici(d = new Date()) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  const gun = (x.getDay() + 6) % 7; // Pzt=0
+  x.setDate(x.getDate() - gun);
+  return x.getTime();
+}
+
+function ilerleme(t: Talebe, esik: number) {
+  // esik anından önceki en son sayfa değerini bul; yoksa ilk geçmiş kaydı
+  const oncekiler = t.gecmis.filter((g) => g.t < esik);
+  const baz =
+    oncekiler.length > 0
+      ? oncekiler[oncekiler.length - 1].sayfa
+      : t.gecmis[0]?.sayfa ?? t.sayfa;
+  return Math.max(0, t.sayfa - baz);
+}
+
 function varsayilanTalebeler(): Talebe[] {
+  const simdi = Date.now();
   return Array.from({ length: 42 }, (_, i) => ({
     id: `t-${i + 1}`,
     isim: `Talebe ${i + 1}`,
     kiraat: false,
     sayfa: 1,
+    gecmis: [{ t: simdi, sayfa: 1 }],
   }));
 }
 
@@ -96,12 +126,22 @@ function Index() {
         if (typeof v.hoca === "string") setHoca(v.hoca);
         if (Array.isArray(v.talebeler) && v.talebeler.length > 0) {
           setTalebeler(
-            v.talebeler.map((t: any) => ({
-              id: t.id,
-              isim: t.isim,
-              kiraat: !!t.kiraat,
-              sayfa: typeof t.sayfa === "number" ? t.sayfa : 1,
-            })),
+            v.talebeler.map((t: any) => {
+              const sayfa = typeof t.sayfa === "number" ? t.sayfa : 1;
+              const gecmis: SayfaKaydi[] = Array.isArray(t.gecmis)
+                ? t.gecmis.filter(
+                    (g: any) =>
+                      typeof g?.t === "number" && typeof g?.sayfa === "number",
+                  )
+                : [{ t: Date.now(), sayfa }];
+              return {
+                id: t.id,
+                isim: t.isim,
+                kiraat: !!t.kiraat,
+                sayfa,
+                gecmis,
+              } as Talebe;
+            }),
           );
         }
       }
@@ -119,7 +159,14 @@ function Index() {
 
   const guncelle = (id: string, alan: Partial<Talebe>) => {
     setTalebeler((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...alan } : t)),
+      prev.map((t) => {
+        if (t.id !== id) return t;
+        const yeni = { ...t, ...alan };
+        if (alan.sayfa !== undefined && alan.sayfa !== t.sayfa) {
+          yeni.gecmis = [...t.gecmis, { t: Date.now(), sayfa: alan.sayfa }];
+        }
+        return yeni;
+      }),
     );
   };
 
@@ -136,6 +183,7 @@ function Index() {
         isim: `Talebe ${yeniNo}`,
         kiraat: false,
         sayfa: 1,
+        gecmis: [{ t: Date.now(), sayfa: 1 }],
       },
     ]);
   };
@@ -274,13 +322,18 @@ function Index() {
                   <TableHead className="text-center">Kıraat</TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
+                  <TableHead className="text-center">Bugün</TableHead>
+                  <TableHead className="text-center">Bu Hafta</TableHead>
                   {hocaModu && (
                     <TableHead className="w-24 text-right">İşlem</TableHead>
                   )}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {talebeler.map((t, i) => (
+                {talebeler.map((t, i) => {
+                  const bugun = ilerleme(t, gunBaslangici());
+                  const hafta = ilerleme(t, haftaBaslangici());
+                  return (
                   <TableRow key={t.id} className="hover:bg-muted/30">
                     <TableCell className="text-center text-xs text-muted-foreground">
                       {i + 1}
@@ -294,6 +347,12 @@ function Index() {
                     </TableCell>
                     <TableCell className="text-center tabular-nums text-muted-foreground">
                       {cuzHesapla(t.sayfa)}
+                    </TableCell>
+                    <TableCell className="text-center tabular-nums">
+                      <IlerlemeRozet sayfa={bugun} />
+                    </TableCell>
+                    <TableCell className="text-center tabular-nums">
+                      <IlerlemeRozet sayfa={hafta} />
                     </TableCell>
                     {hocaModu && (
                       <TableCell className="text-right">
@@ -318,11 +377,12 @@ function Index() {
                       </TableCell>
                     )}
                   </TableRow>
-                ))}
+                  );
+                })}
                 {talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={hocaModu ? 6 : 5}
+                      colSpan={hocaModu ? 8 : 7}
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
                       Henüz talebe yok.
@@ -438,6 +498,23 @@ function DurumRozet({ verildi }: { verildi: boolean }) {
         }`}
       />
       {verildi ? "Verdi" : "Vermedi"}
+    </span>
+  );
+}
+
+function IlerlemeRozet({ sayfa }: { sayfa: number }) {
+  const cuz = sayfa / SAYFA_BASINA_CUZ;
+  const cuzMetin =
+    cuz >= 1 ? ` · ${cuz % 1 === 0 ? cuz : cuz.toFixed(1)} cüz` : "";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+        sayfa > 0
+          ? "bg-primary/10 text-primary"
+          : "bg-muted text-muted-foreground"
+      }`}
+    >
+      {sayfa} sf{cuzMetin}
     </span>
   );
 }
