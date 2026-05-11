@@ -126,12 +126,22 @@ function Index() {
         if (typeof v.hoca === "string") setHoca(v.hoca);
         if (Array.isArray(v.talebeler) && v.talebeler.length > 0) {
           setTalebeler(
-            v.talebeler.map((t: any) => ({
-              id: t.id,
-              isim: t.isim,
-              kiraat: !!t.kiraat,
-              sayfa: typeof t.sayfa === "number" ? t.sayfa : 1,
-            })),
+            v.talebeler.map((t: any) => {
+              const sayfa = typeof t.sayfa === "number" ? t.sayfa : 1;
+              const gecmis: SayfaKaydi[] = Array.isArray(t.gecmis)
+                ? t.gecmis.filter(
+                    (g: any) =>
+                      typeof g?.t === "number" && typeof g?.sayfa === "number",
+                  )
+                : [{ t: Date.now(), sayfa }];
+              return {
+                id: t.id,
+                isim: t.isim,
+                kiraat: !!t.kiraat,
+                sayfa,
+                gecmis,
+              } as Talebe;
+            }),
           );
         }
       }
@@ -149,7 +159,14 @@ function Index() {
 
   const guncelle = (id: string, alan: Partial<Talebe>) => {
     setTalebeler((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...alan } : t)),
+      prev.map((t) => {
+        if (t.id !== id) return t;
+        const yeni = { ...t, ...alan };
+        if (alan.sayfa !== undefined && alan.sayfa !== t.sayfa) {
+          yeni.gecmis = [...t.gecmis, { t: Date.now(), sayfa: alan.sayfa }];
+        }
+        return yeni;
+      }),
     );
   };
 
@@ -166,6 +183,7 @@ function Index() {
         isim: `Talebe ${yeniNo}`,
         kiraat: false,
         sayfa: 1,
+        gecmis: [{ t: Date.now(), sayfa: 1 }],
       },
     ]);
   };
