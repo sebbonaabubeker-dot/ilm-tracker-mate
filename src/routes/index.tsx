@@ -377,11 +377,12 @@ function Index() {
                       </TableCell>
                     )}
                   </TableRow>
-                ))}
+                  );
+                })}
                 {talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={hocaModu ? 6 : 5}
+                      colSpan={hocaModu ? 8 : 7}
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
                       Henüz talebe yok.
