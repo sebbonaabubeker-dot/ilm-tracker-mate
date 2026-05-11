@@ -322,13 +322,18 @@ function Index() {
                   <TableHead className="text-center">Kıraat</TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
+                  <TableHead className="text-center">Bugün</TableHead>
+                  <TableHead className="text-center">Bu Hafta</TableHead>
                   {hocaModu && (
                     <TableHead className="w-24 text-right">İşlem</TableHead>
                   )}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {talebeler.map((t, i) => (
+                {talebeler.map((t, i) => {
+                  const bugun = ilerleme(t, gunBaslangici());
+                  const hafta = ilerleme(t, haftaBaslangici());
+                  return (
                   <TableRow key={t.id} className="hover:bg-muted/30">
                     <TableCell className="text-center text-xs text-muted-foreground">
                       {i + 1}
@@ -342,6 +347,12 @@ function Index() {
                     </TableCell>
                     <TableCell className="text-center tabular-nums text-muted-foreground">
                       {cuzHesapla(t.sayfa)}
+                    </TableCell>
+                    <TableCell className="text-center tabular-nums">
+                      <IlerlemeRozet sayfa={bugun} />
+                    </TableCell>
+                    <TableCell className="text-center tabular-nums">
+                      <IlerlemeRozet sayfa={hafta} />
                     </TableCell>
                     {hocaModu && (
                       <TableCell className="text-right">
