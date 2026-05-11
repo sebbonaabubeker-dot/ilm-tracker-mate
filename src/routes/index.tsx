@@ -40,7 +40,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Talebelerin ilmihal, kıraat ve Kur'an-ı Kerim ilerlemesini takip edin.",
+          "Talebelerin kıraat ve Kur'an-ı Kerim ilerlemesini takip edin.",
       },
     ],
   }),
@@ -50,7 +50,6 @@ export const Route = createFileRoute("/")({
 type Talebe = {
   id: string;
   isim: string;
-  ilmihal: boolean;
   kiraat: boolean;
   sayfa: number;
 };
@@ -58,7 +57,6 @@ type Talebe = {
 const SAYFA_BASINA_CUZ = 20;
 const STORAGE_KEY = "talebe-takip-v2";
 const HOCA_OTURUM_KEY = "talebe-takip-hoca-oturum";
-// Basit yerel parola — yalnızca arayüzü gizler, ciddi güvenlik değildir.
 const VARSAYILAN_PAROLA = "1453";
 
 function cuzHesapla(sayfa: number) {
@@ -71,7 +69,6 @@ function varsayilanTalebeler(): Talebe[] {
   return Array.from({ length: 42 }, (_, i) => ({
     id: `t-${i + 1}`,
     isim: `Talebe ${i + 1}`,
-    ilmihal: false,
     kiraat: false,
     sayfa: 1,
   }));
@@ -91,7 +88,6 @@ function Index() {
   const [hocaDuzenle, setHocaDuzenle] = useState(false);
   const [hocaTaslak, setHocaTaslak] = useState(hoca);
 
-  // Yükleme
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -99,7 +95,14 @@ function Index() {
         const v = JSON.parse(raw);
         if (typeof v.hoca === "string") setHoca(v.hoca);
         if (Array.isArray(v.talebeler) && v.talebeler.length > 0) {
-          setTalebeler(v.talebeler);
+          setTalebeler(
+            v.talebeler.map((t: any) => ({
+              id: t.id,
+              isim: t.isim,
+              kiraat: !!t.kiraat,
+              sayfa: typeof t.sayfa === "number" ? t.sayfa : 1,
+            })),
+          );
         }
       }
       if (sessionStorage.getItem(HOCA_OTURUM_KEY) === "1") {
@@ -109,13 +112,9 @@ function Index() {
     setYuklendi(true);
   }, []);
 
-  // Kaydetme
   useEffect(() => {
     if (!yuklendi) return;
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ hoca, talebeler }),
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ hoca, talebeler }));
   }, [hoca, talebeler, yuklendi]);
 
   const guncelle = (id: string, alan: Partial<Talebe>) => {
@@ -135,7 +134,6 @@ function Index() {
       {
         id: `t-${Date.now()}`,
         isim: `Talebe ${yeniNo}`,
-        ilmihal: false,
         kiraat: false,
         sayfa: 1,
       },
@@ -144,9 +142,8 @@ function Index() {
 
   const ozet = useMemo(() => {
     const toplam = talebeler.length;
-    const ilmihalSayi = talebeler.filter((t) => t.ilmihal).length;
     const kiraatSayi = talebeler.filter((t) => t.kiraat).length;
-    return { toplam, ilmihalSayi, kiraatSayi };
+    return { toplam, kiraatSayi };
   }, [talebeler]);
 
   const girisYap = () => {
@@ -169,7 +166,6 @@ function Index() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-3 py-8 sm:px-6 sm:py-12">
-        {/* Üst bar */}
         <header className="mb-8 flex flex-col items-center gap-4 text-center sm:mb-10">
           <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
             <GraduationCap className="h-7 w-7" />
@@ -179,12 +175,11 @@ function Index() {
               Talebe Takip Defteri
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              İlmihal, Kıraat ve Kur'an-ı Kerim ilerlemesi
+              Kıraat ve Kur'an-ı Kerim ilerlemesi
             </p>
           </div>
         </header>
 
-        {/* Hoca + giriş */}
         <Card className="mb-6 border-accent/40 bg-secondary/40">
           <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
@@ -261,20 +256,14 @@ function Index() {
           </CardContent>
         </Card>
 
-        {/* Özet */}
-        <div className="mb-6 grid grid-cols-3 gap-3">
+        <div className="mb-6 grid grid-cols-2 gap-3">
           <OzetKart etiket="Toplam Talebe" deger={ozet.toplam} />
-          <OzetKart
-            etiket="İlmihal"
-            deger={`${ozet.ilmihalSayi}/${ozet.toplam}`}
-          />
           <OzetKart
             etiket="Kıraat"
             deger={`${ozet.kiraatSayi}/${ozet.toplam}`}
           />
         </div>
 
-        {/* Tablo */}
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
@@ -282,7 +271,6 @@ function Index() {
                 <TableRow className="bg-muted/40">
                   <TableHead className="w-12 text-center">#</TableHead>
                   <TableHead>Talebe</TableHead>
-                  <TableHead className="text-center">İlmihal</TableHead>
                   <TableHead className="text-center">Kıraat</TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
@@ -298,9 +286,6 @@ function Index() {
                       {i + 1}
                     </TableCell>
                     <TableCell className="font-medium">{t.isim}</TableCell>
-                    <TableCell className="text-center">
-                      <DurumRozet verildi={t.ilmihal} />
-                    </TableCell>
                     <TableCell className="text-center">
                       <DurumRozet verildi={t.kiraat} />
                     </TableCell>
@@ -337,7 +322,7 @@ function Index() {
                 {talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={hocaModu ? 7 : 6}
+                      colSpan={hocaModu ? 6 : 5}
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
                       Henüz talebe yok.
@@ -362,7 +347,6 @@ function Index() {
         </p>
       </div>
 
-      {/* Hocaefendi giriş */}
       <Dialog
         open={girisAcik}
         onOpenChange={(o) => {
@@ -412,7 +396,6 @@ function Index() {
         </DialogContent>
       </Dialog>
 
-      {/* Talebe düzenleme */}
       <DuzenleDiyalog
         talebe={duzenlenen}
         onClose={() => setDuzenlenen(null)}
@@ -469,7 +452,6 @@ function DuzenleDiyalog({
   onKaydet: (p: Partial<Talebe>) => void;
 }) {
   const [isim, setIsim] = useState("");
-  const [ilmihal, setIlmihal] = useState(false);
   const [kiraat, setKiraat] = useState(false);
   const [sayfaTaslak, setSayfaTaslak] = useState("1");
   const [sayfaHata, setSayfaHata] = useState<string | null>(null);
@@ -477,7 +459,6 @@ function DuzenleDiyalog({
   useEffect(() => {
     if (talebe) {
       setIsim(talebe.isim);
-      setIlmihal(talebe.ilmihal);
       setKiraat(talebe.kiraat);
       setSayfaTaslak(String(talebe.sayfa));
       setSayfaHata(null);
@@ -507,7 +488,7 @@ function DuzenleDiyalog({
     if (sayfa === null) return;
     const temizIsim = isim.trim().slice(0, 60);
     if (!temizIsim) return;
-    onKaydet({ isim: temizIsim, ilmihal, kiraat, sayfa });
+    onKaydet({ isim: temizIsim, kiraat, sayfa });
   };
 
   const cuz = /^\d+$/.test(sayfaTaslak)
@@ -520,7 +501,7 @@ function DuzenleDiyalog({
         <DialogHeader>
           <DialogTitle>Talebeyi Düzenle</DialogTitle>
           <DialogDescription>
-            İsim, dersler ve Kur'an-ı Kerim ilerlemesi.
+            İsim, ders ve Kur'an-ı Kerim ilerlemesi.
           </DialogDescription>
         </DialogHeader>
 
@@ -534,14 +515,7 @@ function DuzenleDiyalog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <DersKutu
-              etiket="İlmihal"
-              verildi={ilmihal}
-              onChange={setIlmihal}
-            />
-            <DersKutu etiket="Kıraat" verildi={kiraat} onChange={setKiraat} />
-          </div>
+          <DersKutu etiket="Kıraat" verildi={kiraat} onChange={setKiraat} />
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
