@@ -160,7 +160,33 @@ function TalebeKart({
 }) {
   const [isimDuzenle, setIsimDuzenle] = useState(false);
   const [taslak, setTaslak] = useState(talebe.isim);
+  const [sayfaTaslak, setSayfaTaslak] = useState(String(talebe.sayfa));
+  const [sayfaHata, setSayfaHata] = useState<string | null>(null);
   const cuz = cuzHesapla(talebe.sayfa);
+
+  useEffect(() => {
+    setSayfaTaslak(String(talebe.sayfa));
+    setSayfaHata(null);
+  }, [talebe.sayfa]);
+
+  const sayfaDegistir = (deger: string) => {
+    setSayfaTaslak(deger);
+    if (deger.trim() === "") {
+      setSayfaHata("Sayfa boş olamaz");
+      return;
+    }
+    if (!/^\d+$/.test(deger)) {
+      setSayfaHata("Yalnızca rakam giriniz");
+      return;
+    }
+    const n = Number(deger);
+    if (n < 1 || n > 604) {
+      setSayfaHata("Sayfa 1 ile 604 arasında olmalı");
+      return;
+    }
+    setSayfaHata(null);
+    onChange({ sayfa: n });
+  };
 
   return (
     <Card className="border-border/60 shadow-sm">
