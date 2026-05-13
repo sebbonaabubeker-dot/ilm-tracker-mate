@@ -31,6 +31,9 @@ import {
   Check,
   X,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -83,14 +86,25 @@ function haftaBaslangici(d = new Date()) {
   return x.getTime();
 }
 
-function ilerleme(t: Talebe, esik: number) {
-  // esik anından önceki en son sayfa değerini bul; yoksa ilk geçmiş kaydı
-  const oncekiler = t.gecmis.filter((g) => g.t < esik);
-  const baz =
-    oncekiler.length > 0
+function ilerleme(t: Talebe, baslangic: number, bitis: number) {
+  // [baslangic, bitis) aralığında ilerleme: bitis öncesi son sayfa - baslangic öncesi son sayfa
+  const sayfaOnce = (esik: number) => {
+    const oncekiler = t.gecmis.filter((g) => g.t < esik);
+    return oncekiler.length > 0
       ? oncekiler[oncekiler.length - 1].sayfa
       : t.gecmis[0]?.sayfa ?? t.sayfa;
-  return Math.max(0, t.sayfa - baz);
+  };
+  const baz = sayfaOnce(baslangic);
+  const son = sayfaOnce(bitis);
+  return Math.max(0, son - baz);
+}
+
+function haftaEtiket(baslangic: number) {
+  const b = new Date(baslangic);
+  const s = new Date(baslangic + 6 * 24 * 60 * 60 * 1000);
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("tr-TR", { day: "2-digit", month: "short" });
+  return `${fmt(b)} – ${fmt(s)}`;
 }
 
 function varsayilanTalebeler(): Talebe[] {
@@ -117,6 +131,26 @@ function Index() {
   const [duzenlenen, setDuzenlenen] = useState<Talebe | null>(null);
   const [hocaDuzenle, setHocaDuzenle] = useState(false);
   const [hocaTaslak, setHocaTaslak] = useState(hoca);
+  const [seciliHafta, setSeciliHafta] = useState<number>(() => haftaBaslastik());
+
+  function haftaBaslastik() {
+    return haftaBaslangici();
+  }
+
+  const HAFTA_MS = 7 * 24 * 60 * 60 * 1000;
+  const buHafta = haftaBaslangici();
+  const haftaSonu = seciliHafta + HAFTA_MS;
+  const haftaFarki = Math.round((seciliHafta - buHafta) / HAFTA_MS);
+  const haftaBasligi =
+    haftaFarki === 0
+      ? "Bu hafta"
+      : haftaFarki === -1
+        ? "Geçen hafta"
+        : haftaFarki === 1
+          ? "Gelecek hafta"
+          : haftaFarki < 0
+            ? `${-haftaFarki} hafta önce`
+            : `${haftaFarki} hafta sonra`;
 
   useEffect(() => {
     try {
@@ -312,6 +346,45 @@ function Index() {
           />
         </div>
 
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/60 bg-secondary/30 px-3 py-2">
+          <div className="flex items-center gap-2 text-sm">
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-foreground">{haftaBasligi}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="tabular-nums text-muted-foreground">
+              {haftaEtiket(seciliHafta)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => setSeciliHafta((h) => h - HAFTA_MS)}
+              aria-label="Önceki hafta"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSeciliHafta(haftaBaslangici())}
+              disabled={haftaFarki === 0}
+            >
+              Bu hafta
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => setSeciliHafta((h) => h + HAFTA_MS)}
+              aria-label="Sonraki hafta"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
@@ -322,7 +395,7 @@ function Index() {
                   <TableHead className="text-center">Kıraat</TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
-                  <TableHead className="text-center">Bu Hafta</TableHead>
+                  <TableHead className="text-center">{haftaBasligi}</TableHead>
                   {hocaModu && (
                     <TableHead className="w-24 text-right">İşlem</TableHead>
                   )}
@@ -330,7 +403,7 @@ function Index() {
               </TableHeader>
               <TableBody>
                 {talebeler.map((t, i) => {
-                  const hafta = ilerleme(t, haftaBaslangici());
+                  const hafta = ilerleme(t, seciliHafta, haftaSonu);
                   return (
                   <TableRow key={t.id} className="hover:bg-muted/30">
                     <TableCell className="text-center text-xs text-muted-foreground">
