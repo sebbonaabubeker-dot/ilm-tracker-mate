@@ -766,13 +766,42 @@ function DuzenleDiyalog({
             </div>
           </div>
           {sayfaHata && <p className="text-xs text-destructive">{sayfaHata}</p>}
+
+          <div className="space-y-1.5">
+            <Label>Haftalık hedef (sayfa)</Label>
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={200}
+              value={hedefTaslak}
+              onChange={(e) => {
+                setHedefTaslak(e.target.value);
+                hedefDogrula(e.target.value);
+              }}
+              aria-invalid={hedefHata ? true : undefined}
+              className={
+                hedefHata ? "border-destructive focus-visible:ring-destructive" : ""
+              }
+            />
+            {hedefHata ? (
+              <p className="text-xs text-destructive">{hedefHata}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                0 yazarsanız hedef takibi devre dışı kalır.
+              </p>
+            )}
+          </div>
         </div>
 
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>
             İptal
           </Button>
-          <Button onClick={kaydet} disabled={!!sayfaHata || !isim.trim()}>
+          <Button
+            onClick={kaydet}
+            disabled={!!sayfaHata || !!hedefHata || !isim.trim()}
+          >
             Kaydet
           </Button>
         </DialogFooter>
