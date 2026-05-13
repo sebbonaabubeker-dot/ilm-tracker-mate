@@ -229,11 +229,38 @@ function Index() {
     ]);
   };
 
+  const haftalikToplam = useMemo(
+    () =>
+      talebeler.reduce(
+        (acc, t) => acc + ilerleme(t, seciliHafta, haftaSonu),
+        0,
+      ),
+    [talebeler, seciliHafta, haftaSonu],
+  );
+
   const ozet = useMemo(() => {
     const toplam = talebeler.length;
     const kiraatSayi = talebeler.filter((t) => t.kiraat).length;
     return { toplam, kiraatSayi };
   }, [talebeler]);
+
+  const [topluHedefTaslak, setTopluHedefTaslak] = useState("5");
+  const [topluHedefHata, setTopluHedefHata] = useState<string | null>(null);
+
+  const topluHedefUygula = () => {
+    const d = topluHedefTaslak.trim();
+    if (!/^\d+$/.test(d)) {
+      setTopluHedefHata("Yalnızca rakam giriniz");
+      return;
+    }
+    const n = Number(d);
+    if (n < 0 || n > 200) {
+      setTopluHedefHata("0 ile 200 arasında olmalı");
+      return;
+    }
+    setTopluHedefHata(null);
+    setTalebeler((prev) => prev.map((t) => ({ ...t, hedefHaftalik: n })));
+  };
 
   const girisYap = () => {
     if (parolaTaslak === VARSAYILAN_PAROLA) {
