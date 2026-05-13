@@ -131,6 +131,26 @@ function Index() {
   const [duzenlenen, setDuzenlenen] = useState<Talebe | null>(null);
   const [hocaDuzenle, setHocaDuzenle] = useState(false);
   const [hocaTaslak, setHocaTaslak] = useState(hoca);
+  const [seciliHafta, setSeciliHafta] = useState<number>(() => haftaBaslastik());
+
+  function haftaBaslastik() {
+    return haftaBaslangici();
+  }
+
+  const HAFTA_MS = 7 * 24 * 60 * 60 * 1000;
+  const buHafta = haftaBaslangici();
+  const haftaSonu = seciliHafta + HAFTA_MS;
+  const haftaFarki = Math.round((seciliHafta - buHafta) / HAFTA_MS);
+  const haftaBasligi =
+    haftaFarki === 0
+      ? "Bu hafta"
+      : haftaFarki === -1
+        ? "Geçen hafta"
+        : haftaFarki === 1
+          ? "Gelecek hafta"
+          : haftaFarki < 0
+            ? `${-haftaFarki} hafta önce`
+            : `${haftaFarki} hafta sonra`;
 
   useEffect(() => {
     try {
