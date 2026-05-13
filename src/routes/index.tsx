@@ -57,6 +57,7 @@ type Talebe = {
   isim: string;
   kiraat: boolean;
   sayfa: number;
+  hedefHaftalik: number;
   gecmis: SayfaKaydi[];
 };
 
