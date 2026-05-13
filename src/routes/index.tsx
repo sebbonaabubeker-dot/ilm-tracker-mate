@@ -115,6 +115,7 @@ function varsayilanTalebeler(): Talebe[] {
     isim: `Talebe ${i + 1}`,
     kiraat: false,
     sayfa: 1,
+    hedefHaftalik: 5,
     gecmis: [{ t: simdi, sayfa: 1 }],
   }));
 }
