@@ -86,14 +86,25 @@ function haftaBaslangici(d = new Date()) {
   return x.getTime();
 }
 
-function ilerleme(t: Talebe, esik: number) {
-  // esik anından önceki en son sayfa değerini bul; yoksa ilk geçmiş kaydı
-  const oncekiler = t.gecmis.filter((g) => g.t < esik);
-  const baz =
-    oncekiler.length > 0
+function ilerleme(t: Talebe, baslangic: number, bitis: number) {
+  // [baslangic, bitis) aralığında ilerleme: bitis öncesi son sayfa - baslangic öncesi son sayfa
+  const sayfaOnce = (esik: number) => {
+    const oncekiler = t.gecmis.filter((g) => g.t < esik);
+    return oncekiler.length > 0
       ? oncekiler[oncekiler.length - 1].sayfa
       : t.gecmis[0]?.sayfa ?? t.sayfa;
-  return Math.max(0, t.sayfa - baz);
+  };
+  const baz = sayfaOnce(baslangic);
+  const son = sayfaOnce(bitis);
+  return Math.max(0, son - baz);
+}
+
+function haftaEtiket(baslangic: number) {
+  const b = new Date(baslangic);
+  const s = new Date(baslangic + 6 * 24 * 60 * 60 * 1000);
+  const fmt = (d: Date) =>
+    d.toLocaleDateString("tr-TR", { day: "2-digit", month: "short" });
+  return `${fmt(b)} – ${fmt(s)}`;
 }
 
 function varsayilanTalebeler(): Talebe[] {
