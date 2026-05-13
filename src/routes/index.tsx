@@ -403,6 +403,7 @@ function Index() {
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
                   <TableHead className="text-center">{haftaBasligi}</TableHead>
+                  <TableHead className="text-center">Hedef</TableHead>
                   {hocaModu && (
                     <TableHead className="w-24 text-right">İşlem</TableHead>
                   )}
