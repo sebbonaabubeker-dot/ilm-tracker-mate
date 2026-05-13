@@ -346,6 +346,45 @@ function Index() {
           />
         </div>
 
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/60 bg-secondary/30 px-3 py-2">
+          <div className="flex items-center gap-2 text-sm">
+            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-foreground">{haftaBasligi}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="tabular-nums text-muted-foreground">
+              {haftaEtiket(seciliHafta)}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => setSeciliHafta((h) => h - HAFTA_MS)}
+              aria-label="Önceki hafta"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSeciliHafta(haftaBaslangici())}
+              disabled={haftaFarki === 0}
+            >
+              Bu hafta
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => setSeciliHafta((h) => h + HAFTA_MS)}
+              aria-label="Sonraki hafta"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
@@ -356,7 +395,7 @@ function Index() {
                   <TableHead className="text-center">Kıraat</TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
-                  <TableHead className="text-center">Bu Hafta</TableHead>
+                  <TableHead className="text-center">{haftaBasligi}</TableHead>
                   {hocaModu && (
                     <TableHead className="w-24 text-right">İşlem</TableHead>
                   )}
@@ -364,7 +403,7 @@ function Index() {
               </TableHeader>
               <TableBody>
                 {talebeler.map((t, i) => {
-                  const hafta = ilerleme(t, haftaBaslangici());
+                  const hafta = ilerleme(t, seciliHafta, haftaSonu);
                   return (
                   <TableRow key={t.id} className="hover:bg-muted/30">
                     <TableCell className="text-center text-xs text-muted-foreground">
