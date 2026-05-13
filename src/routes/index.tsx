@@ -57,6 +57,7 @@ type Talebe = {
   isim: string;
   kiraat: boolean;
   sayfa: number;
+  hedefHaftalik: number;
   gecmis: SayfaKaydi[];
 };
 
@@ -114,6 +115,7 @@ function varsayilanTalebeler(): Talebe[] {
     isim: `Talebe ${i + 1}`,
     kiraat: false,
     sayfa: 1,
+    hedefHaftalik: 5,
     gecmis: [{ t: simdi, sayfa: 1 }],
   }));
 }
@@ -173,6 +175,10 @@ function Index() {
                 isim: t.isim,
                 kiraat: !!t.kiraat,
                 sayfa,
+                hedefHaftalik:
+                  typeof t.hedefHaftalik === "number" && t.hedefHaftalik >= 0
+                    ? t.hedefHaftalik
+                    : 5,
                 gecmis,
               } as Talebe;
             }),
@@ -217,6 +223,7 @@ function Index() {
         isim: `Talebe ${yeniNo}`,
         kiraat: false,
         sayfa: 1,
+        hedefHaftalik: 5,
         gecmis: [{ t: Date.now(), sayfa: 1 }],
       },
     ]);
@@ -396,6 +403,7 @@ function Index() {
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
                   <TableHead className="text-center">{haftaBasligi}</TableHead>
+                  <TableHead className="text-center">Hedef</TableHead>
                   {hocaModu && (
                     <TableHead className="w-24 text-right">İşlem</TableHead>
                   )}
@@ -421,6 +429,9 @@ function Index() {
                     </TableCell>
                     <TableCell className="text-center tabular-nums">
                       <IlerlemeRozet sayfa={hafta} />
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <HedefRozet yapilan={hafta} hedef={t.hedefHaftalik} />
                     </TableCell>
                     {hocaModu && (
                       <TableCell className="text-right">
@@ -450,7 +461,7 @@ function Index() {
                 {talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={hocaModu ? 7 : 6}
+                      colSpan={hocaModu ? 8 : 7}
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
                       Henüz talebe yok.
@@ -584,6 +595,48 @@ function IlerlemeRozet({ sayfa }: { sayfa: number }) {
   );
 }
 
+function HedefRozet({ yapilan, hedef }: { yapilan: number; hedef: number }) {
+  if (!hedef || hedef <= 0) {
+    return (
+      <span className="text-xs text-muted-foreground">—</span>
+    );
+  }
+  const oran = Math.round((yapilan / hedef) * 100);
+  const oranSinirli = Math.min(100, oran);
+  let renk = "bg-destructive/10 text-destructive";
+  let nokta = "bg-destructive";
+  let bar = "bg-destructive";
+  let etiket = "Geride";
+  if (oran >= 100) {
+    renk = "bg-primary/10 text-primary";
+    nokta = "bg-primary";
+    bar = "bg-primary";
+    etiket = "Hedefte";
+  } else if (oran >= 50) {
+    renk = "bg-amber-500/15 text-amber-600 dark:text-amber-400";
+    nokta = "bg-amber-500";
+    bar = "bg-amber-500";
+    etiket = "Yolda";
+  }
+  return (
+    <div className="mx-auto flex w-24 flex-col items-center gap-1">
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${renk}`}
+        title={`${yapilan} / ${hedef} sf`}
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${nokta}`} />
+        {etiket} · %{oran}
+      </span>
+      <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full ${bar} transition-all`}
+          style={{ width: `${oranSinirli}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function DuzenleDiyalog({
   talebe,
   onClose,
@@ -597,13 +650,17 @@ function DuzenleDiyalog({
   const [kiraat, setKiraat] = useState(false);
   const [sayfaTaslak, setSayfaTaslak] = useState("1");
   const [sayfaHata, setSayfaHata] = useState<string | null>(null);
+  const [hedefTaslak, setHedefTaslak] = useState("5");
+  const [hedefHata, setHedefHata] = useState<string | null>(null);
 
   useEffect(() => {
     if (talebe) {
       setIsim(talebe.isim);
       setKiraat(talebe.kiraat);
       setSayfaTaslak(String(talebe.sayfa));
+      setHedefTaslak(String(talebe.hedefHaftalik ?? 5));
       setSayfaHata(null);
+      setHedefHata(null);
     }
   }, [talebe]);
 
@@ -625,12 +682,31 @@ function DuzenleDiyalog({
     return n;
   };
 
+  const hedefDogrula = (deger: string): number | null => {
+    if (deger.trim() === "") {
+      setHedefHata("Hedef boş olamaz");
+      return null;
+    }
+    if (!/^\d+$/.test(deger)) {
+      setHedefHata("Yalnızca rakam giriniz");
+      return null;
+    }
+    const n = Number(deger);
+    if (n < 0 || n > 200) {
+      setHedefHata("Hedef 0 ile 200 arasında olmalı");
+      return null;
+    }
+    setHedefHata(null);
+    return n;
+  };
+
   const kaydet = () => {
     const sayfa = sayfaDogrula(sayfaTaslak);
-    if (sayfa === null) return;
+    const hedef = hedefDogrula(hedefTaslak);
+    if (sayfa === null || hedef === null) return;
     const temizIsim = isim.trim().slice(0, 60);
     if (!temizIsim) return;
-    onKaydet({ isim: temizIsim, kiraat, sayfa });
+    onKaydet({ isim: temizIsim, kiraat, sayfa, hedefHaftalik: hedef });
   };
 
   const cuz = /^\d+$/.test(sayfaTaslak)
@@ -690,13 +766,42 @@ function DuzenleDiyalog({
             </div>
           </div>
           {sayfaHata && <p className="text-xs text-destructive">{sayfaHata}</p>}
+
+          <div className="space-y-1.5">
+            <Label>Haftalık hedef (sayfa)</Label>
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={200}
+              value={hedefTaslak}
+              onChange={(e) => {
+                setHedefTaslak(e.target.value);
+                hedefDogrula(e.target.value);
+              }}
+              aria-invalid={hedefHata ? true : undefined}
+              className={
+                hedefHata ? "border-destructive focus-visible:ring-destructive" : ""
+              }
+            />
+            {hedefHata ? (
+              <p className="text-xs text-destructive">{hedefHata}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                0 yazarsanız hedef takibi devre dışı kalır.
+              </p>
+            )}
+          </div>
         </div>
 
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>
             İptal
           </Button>
-          <Button onClick={kaydet} disabled={!!sayfaHata || !isim.trim()}>
+          <Button
+            onClick={kaydet}
+            disabled={!!sayfaHata || !!hedefHata || !isim.trim()}
+          >
             Kaydet
           </Button>
         </DialogFooter>
