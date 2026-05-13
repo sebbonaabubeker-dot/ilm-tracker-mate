@@ -175,6 +175,10 @@ function Index() {
                 isim: t.isim,
                 kiraat: !!t.kiraat,
                 sayfa,
+                hedefHaftalik:
+                  typeof t.hedefHaftalik === "number" && t.hedefHaftalik >= 0
+                    ? t.hedefHaftalik
+                    : 5,
                 gecmis,
               } as Talebe;
             }),
@@ -219,6 +223,7 @@ function Index() {
         isim: `Talebe ${yeniNo}`,
         kiraat: false,
         sayfa: 1,
+        hedefHaftalik: 5,
         gecmis: [{ t: Date.now(), sayfa: 1 }],
       },
     ]);
