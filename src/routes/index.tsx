@@ -430,6 +430,9 @@ function Index() {
                     <TableCell className="text-center tabular-nums">
                       <IlerlemeRozet sayfa={hafta} />
                     </TableCell>
+                    <TableCell className="text-center">
+                      <HedefRozet yapilan={hafta} hedef={t.hedefHaftalik} />
+                    </TableCell>
                     {hocaModu && (
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
