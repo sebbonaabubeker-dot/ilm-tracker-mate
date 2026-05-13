@@ -31,6 +31,9 @@ import {
   Check,
   X,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
