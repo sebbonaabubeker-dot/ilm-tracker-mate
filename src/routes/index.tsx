@@ -650,13 +650,17 @@ function DuzenleDiyalog({
   const [kiraat, setKiraat] = useState(false);
   const [sayfaTaslak, setSayfaTaslak] = useState("1");
   const [sayfaHata, setSayfaHata] = useState<string | null>(null);
+  const [hedefTaslak, setHedefTaslak] = useState("5");
+  const [hedefHata, setHedefHata] = useState<string | null>(null);
 
   useEffect(() => {
     if (talebe) {
       setIsim(talebe.isim);
       setKiraat(talebe.kiraat);
       setSayfaTaslak(String(talebe.sayfa));
+      setHedefTaslak(String(talebe.hedefHaftalik ?? 5));
       setSayfaHata(null);
+      setHedefHata(null);
     }
   }, [talebe]);
 
@@ -678,12 +682,31 @@ function DuzenleDiyalog({
     return n;
   };
 
+  const hedefDogrula = (deger: string): number | null => {
+    if (deger.trim() === "") {
+      setHedefHata("Hedef boş olamaz");
+      return null;
+    }
+    if (!/^\d+$/.test(deger)) {
+      setHedefHata("Yalnızca rakam giriniz");
+      return null;
+    }
+    const n = Number(deger);
+    if (n < 0 || n > 200) {
+      setHedefHata("Hedef 0 ile 200 arasında olmalı");
+      return null;
+    }
+    setHedefHata(null);
+    return n;
+  };
+
   const kaydet = () => {
     const sayfa = sayfaDogrula(sayfaTaslak);
-    if (sayfa === null) return;
+    const hedef = hedefDogrula(hedefTaslak);
+    if (sayfa === null || hedef === null) return;
     const temizIsim = isim.trim().slice(0, 60);
     if (!temizIsim) return;
-    onKaydet({ isim: temizIsim, kiraat, sayfa });
+    onKaydet({ isim: temizIsim, kiraat, sayfa, hedefHaftalik: hedef });
   };
 
   const cuz = /^\d+$/.test(sayfaTaslak)
