@@ -229,11 +229,38 @@ function Index() {
     ]);
   };
 
+  const haftalikToplam = useMemo(
+    () =>
+      talebeler.reduce(
+        (acc, t) => acc + ilerleme(t, seciliHafta, haftaSonu),
+        0,
+      ),
+    [talebeler, seciliHafta, haftaSonu],
+  );
+
   const ozet = useMemo(() => {
     const toplam = talebeler.length;
     const kiraatSayi = talebeler.filter((t) => t.kiraat).length;
     return { toplam, kiraatSayi };
   }, [talebeler]);
+
+  const [topluHedefTaslak, setTopluHedefTaslak] = useState("5");
+  const [topluHedefHata, setTopluHedefHata] = useState<string | null>(null);
+
+  const topluHedefUygula = () => {
+    const d = topluHedefTaslak.trim();
+    if (!/^\d+$/.test(d)) {
+      setTopluHedefHata("Yalnızca rakam giriniz");
+      return;
+    }
+    const n = Number(d);
+    if (n < 0 || n > 200) {
+      setTopluHedefHata("0 ile 200 arasında olmalı");
+      return;
+    }
+    setTopluHedefHata(null);
+    setTalebeler((prev) => prev.map((t) => ({ ...t, hedefHaftalik: n })));
+  };
 
   const girisYap = () => {
     if (parolaTaslak === VARSAYILAN_PAROLA) {
@@ -345,13 +372,45 @@ function Index() {
           </CardContent>
         </Card>
 
-        <div className="mb-6 grid grid-cols-2 gap-3">
+        <div className="mb-6 grid grid-cols-3 gap-3">
           <OzetKart etiket="Toplam Talebe" deger={ozet.toplam} />
           <OzetKart
             etiket="Kıraat"
             deger={`${ozet.kiraatSayi}/${ozet.toplam}`}
           />
+          <OzetKart
+            etiket={`${haftaBasligi} ilerleme`}
+            deger={`${haftalikToplam} sf`}
+          />
         </div>
+
+        {hocaModu && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border/60 bg-secondary/30 px-3 py-2">
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">
+              Toplu hedef
+            </span>
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={200}
+              value={topluHedefTaslak}
+              onChange={(e) => {
+                setTopluHedefTaslak(e.target.value);
+                setTopluHedefHata(null);
+              }}
+              className="h-8 w-24"
+              aria-invalid={topluHedefHata ? true : undefined}
+            />
+            <span className="text-xs text-muted-foreground">sf / hafta</span>
+            <Button size="sm" onClick={topluHedefUygula}>
+              Tümüne uygula
+            </Button>
+            {topluHedefHata && (
+              <span className="text-xs text-destructive">{topluHedefHata}</span>
+            )}
+          </div>
+        )}
 
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/60 bg-secondary/30 px-3 py-2">
           <div className="flex items-center gap-2 text-sm">
