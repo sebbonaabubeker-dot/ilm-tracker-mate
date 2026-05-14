@@ -536,10 +536,6 @@ function Index() {
             </Button>
           </div>
         )}
-
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          1 cüz ≈ 20 sayfa (604 sayfa / 30 cüz). Veriler bulutta (Firebase) saklanır.
-        </p>
       </div>
 
       <Dialog
