@@ -268,8 +268,9 @@ function Index() {
             <GraduationCap className="h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-4xl">
-              Siec Dessie Kursu
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
+              <span className="text-5xl font-extrabold sm:text-7xl">Siec</span>{" "}
+              Dessie Kursu
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Talebe Başarı Paneli
@@ -353,15 +354,11 @@ function Index() {
           </CardContent>
         </Card>
 
-        <div className="mb-6 grid grid-cols-3 gap-3">
+        <div className="mb-6 grid grid-cols-2 gap-3">
           <OzetKart etiket="Toplam Talebe" deger={ozet.toplam} />
           <OzetKart
             etiket="Kıraat"
             deger={`${ozet.kiraatSayi}/${ozet.toplam}`}
-          />
-          <OzetKart
-            etiket={`${haftaBasligi} ilerleme`}
-            deger={`${haftalikToplam} sf`}
           />
         </div>
 
@@ -442,7 +439,6 @@ function Index() {
                   <TableHead className="text-center">Kıraat</TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
-                  <TableHead className="text-center">{haftaBasligi}</TableHead>
                   <TableHead className="text-center">Hedef</TableHead>
                   {hocaModu && (
                     <TableHead className="w-24 text-right">İşlem</TableHead>
@@ -466,9 +462,6 @@ function Index() {
                     </TableCell>
                     <TableCell className="text-center tabular-nums text-muted-foreground">
                       {cuzHesapla(t.sayfa)}
-                    </TableCell>
-                    <TableCell className="text-center tabular-nums">
-                      <IlerlemeRozet sayfa={hafta} />
                     </TableCell>
                     <TableCell className="text-center">
                       <HedefRozet yapilan={hafta} hedef={t.hedefHaftalik} />
@@ -543,10 +536,6 @@ function Index() {
             </Button>
           </div>
         )}
-
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          1 cüz ≈ 20 sayfa (604 sayfa / 30 cüz). Veriler bulutta (Firebase) saklanır.
-        </p>
       </div>
 
       <Dialog
