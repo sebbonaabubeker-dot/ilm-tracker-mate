@@ -272,7 +272,7 @@ function Index() {
               Siec Dessie Kursu
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Talabe Başarı Paneli
+              Talebe Başarı Paneli
             </p>
           </div>
         </header>
