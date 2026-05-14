@@ -34,7 +34,17 @@ import {
   ChevronLeft,
   ChevronRight,
   CalendarDays,
+  Loader2,
 } from "lucide-react";
+import {
+  talebeleriDinle,
+  talebeEkle,
+  talebeGuncelle,
+  talebeSil,
+  topluHedefGuncelle,
+  type Talebe,
+  type SayfaKaydi,
+} from "@/lib/talebeler";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -50,20 +60,11 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type SayfaKaydi = { t: number; sayfa: number }; // t: epoch ms
-
-type Talebe = {
-  id: string;
-  isim: string;
-  kiraat: boolean;
-  sayfa: number;
-  hedefHaftalik: number;
-  gecmis: SayfaKaydi[];
-};
+// (Talebe / SayfaKaydi tipleri ve veri katmanı '@/lib/talebeler' içindedir)
 
 const SAYFA_BASINA_CUZ = 20;
-const STORAGE_KEY = "talebe-takip-v2";
 const HOCA_OTURUM_KEY = "talebe-takip-hoca-oturum";
+const HOCA_AD_KEY = "talebe-takip-hoca-ad";
 const VARSAYILAN_PAROLA = "1453";
 
 function cuzHesapla(sayfa: number) {
@@ -108,22 +109,11 @@ function haftaEtiket(baslangic: number) {
   return `${fmt(b)} – ${fmt(s)}`;
 }
 
-function varsayilanTalebeler(): Talebe[] {
-  const simdi = Date.now();
-  return Array.from({ length: 42 }, (_, i) => ({
-    id: `t-${i + 1}`,
-    isim: `Talebe ${i + 1}`,
-    kiraat: false,
-    sayfa: 1,
-    hedefHaftalik: 5,
-    gecmis: [{ t: simdi, sayfa: 1 }],
-  }));
-}
-
 function Index() {
   const [hoca, setHoca] = useState("Hocaefendi");
-  const [talebeler, setTalebeler] = useState<Talebe[]>(varsayilanTalebeler);
+  const [talebeler, setTalebeler] = useState<Talebe[]>([]);
   const [yuklendi, setYuklendi] = useState(false);
+  const [yuklemeHata, setYuklemeHata] = useState<string | null>(null);
 
   const [hocaModu, setHocaModu] = useState(false);
   const [girisAcik, setGirisAcik] = useState(false);
@@ -154,79 +144,67 @@ function Index() {
             ? `${-haftaFarki} hafta önce`
             : `${haftaFarki} hafta sonra`;
 
+  // Yerel UI tercihleri (hoca adı + oturum) localStorage'da kalır
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const v = JSON.parse(raw);
-        if (typeof v.hoca === "string") setHoca(v.hoca);
-        if (Array.isArray(v.talebeler) && v.talebeler.length > 0) {
-          setTalebeler(
-            v.talebeler.map((t: any) => {
-              const sayfa = typeof t.sayfa === "number" ? t.sayfa : 1;
-              const gecmis: SayfaKaydi[] = Array.isArray(t.gecmis)
-                ? t.gecmis.filter(
-                    (g: any) =>
-                      typeof g?.t === "number" && typeof g?.sayfa === "number",
-                  )
-                : [{ t: Date.now(), sayfa }];
-              return {
-                id: t.id,
-                isim: t.isim,
-                kiraat: !!t.kiraat,
-                sayfa,
-                hedefHaftalik:
-                  typeof t.hedefHaftalik === "number" && t.hedefHaftalik >= 0
-                    ? t.hedefHaftalik
-                    : 5,
-                gecmis,
-              } as Talebe;
-            }),
-          );
-        }
-      }
-      if (sessionStorage.getItem(HOCA_OTURUM_KEY) === "1") {
-        setHocaModu(true);
-      }
+      const ad = localStorage.getItem(HOCA_AD_KEY);
+      if (ad) setHoca(ad);
+      if (sessionStorage.getItem(HOCA_OTURUM_KEY) === "1") setHocaModu(true);
     } catch {}
-    setYuklendi(true);
   }, []);
 
   useEffect(() => {
-    if (!yuklendi) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ hoca, talebeler }));
-  }, [hoca, talebeler, yuklendi]);
+    try {
+      localStorage.setItem(HOCA_AD_KEY, hoca);
+    } catch {}
+  }, [hoca]);
+
+  // Firestore canlı veri
+  useEffect(() => {
+    const unsub = talebeleriDinle(
+      (liste) => {
+        setTalebeler(liste);
+        setYuklendi(true);
+      },
+      (e) => {
+        setYuklemeHata(e.message);
+        setYuklendi(true);
+      },
+    );
+    return () => unsub();
+  }, []);
 
   const guncelle = (id: string, alan: Partial<Talebe>) => {
-    setTalebeler((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t;
-        const yeni = { ...t, ...alan };
-        if (alan.sayfa !== undefined && alan.sayfa !== t.sayfa) {
-          yeni.gecmis = [...t.gecmis, { t: Date.now(), sayfa: alan.sayfa }];
-        }
-        return yeni;
-      }),
-    );
+    const mevcut = talebeler.find((t) => t.id === id);
+    if (!mevcut) return;
+    const patch: Partial<Talebe> = { ...alan };
+    if (alan.sayfa !== undefined && alan.sayfa !== mevcut.sayfa) {
+      patch.gecmis = [
+        ...mevcut.gecmis,
+        { t: Date.now(), sayfa: alan.sayfa },
+      ];
+    }
+    void talebeGuncelle(id, patch);
   };
 
   const sil = (id: string) => {
-    setTalebeler((prev) => prev.filter((t) => t.id !== id));
+    void talebeSil(id);
   };
 
   const ekle = () => {
     const yeniNo = talebeler.length + 1;
-    setTalebeler((prev) => [
-      ...prev,
-      {
-        id: `t-${Date.now()}`,
-        isim: `Talebe ${yeniNo}`,
-        kiraat: false,
-        sayfa: 1,
-        hedefHaftalik: 5,
-        gecmis: [{ t: Date.now(), sayfa: 1 }],
-      },
-    ]);
+    const enBuyukSira = talebeler.reduce(
+      (m, t) => Math.max(m, t.sira ?? 0),
+      0,
+    );
+    void talebeEkle({
+      isim: `Talebe ${yeniNo}`,
+      kiraat: false,
+      sayfa: 1,
+      hedefHaftalik: 5,
+      gecmis: [{ t: Date.now(), sayfa: 1 }],
+      sira: enBuyukSira + 1,
+    });
   };
 
   const haftalikToplam = useMemo(
@@ -259,7 +237,10 @@ function Index() {
       return;
     }
     setTopluHedefHata(null);
-    setTalebeler((prev) => prev.map((t) => ({ ...t, hedefHaftalik: n })));
+    void topluHedefGuncelle(
+      talebeler.map((t) => t.id),
+      n,
+    );
   };
 
   const girisYap = () => {
@@ -517,7 +498,30 @@ function Index() {
                   </TableRow>
                   );
                 })}
-                {talebeler.length === 0 && (
+                {!yuklendi && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={hocaModu ? 8 : 7}
+                      className="py-10 text-center text-sm text-muted-foreground"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Veriler yükleniyor…
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {yuklendi && yuklemeHata && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={hocaModu ? 8 : 7}
+                      className="py-10 text-center text-sm text-destructive"
+                    >
+                      Bağlantı hatası: {yuklemeHata}
+                    </TableCell>
+                  </TableRow>
+                )}
+                {yuklendi && !yuklemeHata && talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={hocaModu ? 8 : 7}
@@ -541,7 +545,7 @@ function Index() {
         )}
 
         <p className="mt-8 text-center text-xs text-muted-foreground">
-          1 cüz ≈ 20 sayfa (604 sayfa / 30 cüz). Veriler bu cihazda saklanır.
+          1 cüz ≈ 20 sayfa (604 sayfa / 30 cüz). Veriler bulutta (Firebase) saklanır.
         </p>
       </div>
 
