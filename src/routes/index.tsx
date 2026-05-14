@@ -60,20 +60,11 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type SayfaKaydi = { t: number; sayfa: number }; // t: epoch ms
-
-type Talebe = {
-  id: string;
-  isim: string;
-  kiraat: boolean;
-  sayfa: number;
-  hedefHaftalik: number;
-  gecmis: SayfaKaydi[];
-};
+// (Talebe / SayfaKaydi tipleri ve veri katmanı '@/lib/talebeler' içindedir)
 
 const SAYFA_BASINA_CUZ = 20;
-const STORAGE_KEY = "talebe-takip-v2";
 const HOCA_OTURUM_KEY = "talebe-takip-hoca-oturum";
+const HOCA_AD_KEY = "talebe-takip-hoca-ad";
 const VARSAYILAN_PAROLA = "1453";
 
 function cuzHesapla(sayfa: number) {
