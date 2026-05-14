@@ -463,9 +463,6 @@ function Index() {
                     <TableCell className="text-center tabular-nums text-muted-foreground">
                       {cuzHesapla(t.sayfa)}
                     </TableCell>
-                    <TableCell className="text-center tabular-nums">
-                      <IlerlemeRozet sayfa={hafta} />
-                    </TableCell>
                     <TableCell className="text-center">
                       <HedefRozet yapilan={hafta} hedef={t.hedefHaftalik} />
                     </TableCell>
