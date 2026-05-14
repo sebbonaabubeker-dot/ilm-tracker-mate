@@ -34,7 +34,17 @@ import {
   ChevronLeft,
   ChevronRight,
   CalendarDays,
+  Loader2,
 } from "lucide-react";
+import {
+  talebeleriDinle,
+  talebeEkle,
+  talebeGuncelle,
+  talebeSil,
+  topluHedefGuncelle,
+  type Talebe,
+  type SayfaKaydi,
+} from "@/lib/talebeler";
 
 export const Route = createFileRoute("/")({
   head: () => ({
