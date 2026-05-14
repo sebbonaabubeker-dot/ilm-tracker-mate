@@ -109,22 +109,11 @@ function haftaEtiket(baslangic: number) {
   return `${fmt(b)} – ${fmt(s)}`;
 }
 
-function varsayilanTalebeler(): Talebe[] {
-  const simdi = Date.now();
-  return Array.from({ length: 42 }, (_, i) => ({
-    id: `t-${i + 1}`,
-    isim: `Talebe ${i + 1}`,
-    kiraat: false,
-    sayfa: 1,
-    hedefHaftalik: 5,
-    gecmis: [{ t: simdi, sayfa: 1 }],
-  }));
-}
-
 function Index() {
   const [hoca, setHoca] = useState("Hocaefendi");
-  const [talebeler, setTalebeler] = useState<Talebe[]>(varsayilanTalebeler);
+  const [talebeler, setTalebeler] = useState<Talebe[]>([]);
   const [yuklendi, setYuklendi] = useState(false);
+  const [yuklemeHata, setYuklemeHata] = useState<string | null>(null);
 
   const [hocaModu, setHocaModu] = useState(false);
   const [girisAcik, setGirisAcik] = useState(false);
@@ -155,79 +144,67 @@ function Index() {
             ? `${-haftaFarki} hafta önce`
             : `${haftaFarki} hafta sonra`;
 
+  // Yerel UI tercihleri (hoca adı + oturum) localStorage'da kalır
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const v = JSON.parse(raw);
-        if (typeof v.hoca === "string") setHoca(v.hoca);
-        if (Array.isArray(v.talebeler) && v.talebeler.length > 0) {
-          setTalebeler(
-            v.talebeler.map((t: any) => {
-              const sayfa = typeof t.sayfa === "number" ? t.sayfa : 1;
-              const gecmis: SayfaKaydi[] = Array.isArray(t.gecmis)
-                ? t.gecmis.filter(
-                    (g: any) =>
-                      typeof g?.t === "number" && typeof g?.sayfa === "number",
-                  )
-                : [{ t: Date.now(), sayfa }];
-              return {
-                id: t.id,
-                isim: t.isim,
-                kiraat: !!t.kiraat,
-                sayfa,
-                hedefHaftalik:
-                  typeof t.hedefHaftalik === "number" && t.hedefHaftalik >= 0
-                    ? t.hedefHaftalik
-                    : 5,
-                gecmis,
-              } as Talebe;
-            }),
-          );
-        }
-      }
-      if (sessionStorage.getItem(HOCA_OTURUM_KEY) === "1") {
-        setHocaModu(true);
-      }
+      const ad = localStorage.getItem(HOCA_AD_KEY);
+      if (ad) setHoca(ad);
+      if (sessionStorage.getItem(HOCA_OTURUM_KEY) === "1") setHocaModu(true);
     } catch {}
-    setYuklendi(true);
   }, []);
 
   useEffect(() => {
-    if (!yuklendi) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ hoca, talebeler }));
-  }, [hoca, talebeler, yuklendi]);
+    try {
+      localStorage.setItem(HOCA_AD_KEY, hoca);
+    } catch {}
+  }, [hoca]);
+
+  // Firestore canlı veri
+  useEffect(() => {
+    const unsub = talebeleriDinle(
+      (liste) => {
+        setTalebeler(liste);
+        setYuklendi(true);
+      },
+      (e) => {
+        setYuklemeHata(e.message);
+        setYuklendi(true);
+      },
+    );
+    return () => unsub();
+  }, []);
 
   const guncelle = (id: string, alan: Partial<Talebe>) => {
-    setTalebeler((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t;
-        const yeni = { ...t, ...alan };
-        if (alan.sayfa !== undefined && alan.sayfa !== t.sayfa) {
-          yeni.gecmis = [...t.gecmis, { t: Date.now(), sayfa: alan.sayfa }];
-        }
-        return yeni;
-      }),
-    );
+    const mevcut = talebeler.find((t) => t.id === id);
+    if (!mevcut) return;
+    const patch: Partial<Talebe> = { ...alan };
+    if (alan.sayfa !== undefined && alan.sayfa !== mevcut.sayfa) {
+      patch.gecmis = [
+        ...mevcut.gecmis,
+        { t: Date.now(), sayfa: alan.sayfa },
+      ];
+    }
+    void talebeGuncelle(id, patch);
   };
 
   const sil = (id: string) => {
-    setTalebeler((prev) => prev.filter((t) => t.id !== id));
+    void talebeSil(id);
   };
 
   const ekle = () => {
     const yeniNo = talebeler.length + 1;
-    setTalebeler((prev) => [
-      ...prev,
-      {
-        id: `t-${Date.now()}`,
-        isim: `Talebe ${yeniNo}`,
-        kiraat: false,
-        sayfa: 1,
-        hedefHaftalik: 5,
-        gecmis: [{ t: Date.now(), sayfa: 1 }],
-      },
-    ]);
+    const enBuyukSira = talebeler.reduce(
+      (m, t) => Math.max(m, t.sira ?? 0),
+      0,
+    );
+    void talebeEkle({
+      isim: `Talebe ${yeniNo}`,
+      kiraat: false,
+      sayfa: 1,
+      hedefHaftalik: 5,
+      gecmis: [{ t: Date.now(), sayfa: 1 }],
+      sira: enBuyukSira + 1,
+    });
   };
 
   const haftalikToplam = useMemo(
@@ -260,7 +237,10 @@ function Index() {
       return;
     }
     setTopluHedefHata(null);
-    setTalebeler((prev) => prev.map((t) => ({ ...t, hedefHaftalik: n })));
+    void topluHedefGuncelle(
+      talebeler.map((t) => t.id),
+      n,
+    );
   };
 
   const girisYap = () => {
