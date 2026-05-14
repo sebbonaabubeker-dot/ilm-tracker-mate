@@ -498,7 +498,30 @@ function Index() {
                   </TableRow>
                   );
                 })}
-                {talebeler.length === 0 && (
+                {!yuklendi && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={hocaModu ? 8 : 7}
+                      className="py-10 text-center text-sm text-muted-foreground"
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Veriler yükleniyor…
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                )}
+                {yuklendi && yuklemeHata && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={hocaModu ? 8 : 7}
+                      className="py-10 text-center text-sm text-destructive"
+                    >
+                      Bağlantı hatası: {yuklemeHata}
+                    </TableCell>
+                  </TableRow>
+                )}
+                {yuklendi && !yuklemeHata && talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={hocaModu ? 8 : 7}
