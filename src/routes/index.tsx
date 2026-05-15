@@ -122,6 +122,7 @@ function toggleGun(mevcut: number[], gun: number): number[] {
     : [...mevcut, gun].sort((a, b) => a - b);
 }
 
+function Index() {
   const [hoca, setHoca] = useState("Hocaefendi");
   const [talebeler, setTalebeler] = useState<Talebe[]>([]);
   const [yuklendi, setYuklendi] = useState(false);
