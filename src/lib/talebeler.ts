@@ -17,6 +17,7 @@ export type Talebe = {
   id: string;
   isim: string;
   kiraat: boolean;
+  kiraatGunler?: Record<string, number[]>;
   sayfa: number;
   hedefHaftalik: number;
   gecmis: SayfaKaydi[];
