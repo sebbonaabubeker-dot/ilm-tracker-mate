@@ -643,7 +643,48 @@ function OzetKart({ etiket, deger }: { etiket: string; deger: number | string })
   );
 }
 
-function DurumRozet({ verildi }: { verildi: boolean }) {
+function KiraatGunler({
+  gunler,
+  duzenlenebilir,
+  onToggle,
+}: {
+  gunler: number[];
+  duzenlenebilir: boolean;
+  onToggle: (g: number) => void;
+}) {
+  return (
+    <div className="flex flex-wrap justify-center gap-1">
+      {GUN_KISA.map((isim, i) => {
+        const aktif = gunler.includes(i);
+        const sinif = aktif
+          ? "bg-primary text-primary-foreground border-primary"
+          : "bg-muted/40 text-muted-foreground border-border";
+        if (duzenlenebilir) {
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onToggle(i)}
+              className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-primary/80 hover:text-primary-foreground ${sinif}`}
+              title={isim}
+            >
+              {isim[0]}
+            </button>
+          );
+        }
+        return (
+          <span
+            key={i}
+            className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${sinif}`}
+            title={isim}
+          >
+            {isim[0]}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
