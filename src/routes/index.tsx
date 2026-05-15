@@ -799,7 +799,7 @@ function DuzenleDiyalog({
     if (sayfa === null || hedef === null) return;
     const temizIsim = isim.trim().slice(0, 60);
     if (!temizIsim) return;
-    onKaydet({ isim: temizIsim, kiraat, sayfa, hedefHaftalik: hedef });
+    onKaydet({ isim: temizIsim, sayfa, hedefHaftalik: hedef });
   };
 
   const cuz = /^\d+$/.test(sayfaTaslak)
