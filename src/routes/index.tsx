@@ -109,6 +109,19 @@ function haftaEtiket(baslangic: number) {
   return `${fmt(b)} – ${fmt(s)}`;
 }
 
+const GUN_KISA = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Pzr"] as const;
+
+function getKiraatGunler(t: Talebe, haftaBas: number): number[] {
+  const k = t.kiraatGunler?.[String(haftaBas)];
+  return Array.isArray(k) ? [...k].sort((a, b) => a - b) : [];
+}
+
+function toggleGun(mevcut: number[], gun: number): number[] {
+  return mevcut.includes(gun)
+    ? mevcut.filter((g) => g !== gun)
+    : [...mevcut, gun].sort((a, b) => a - b);
+}
+
 function Index() {
   const [hoca, setHoca] = useState("Hocaefendi");
   const [talebeler, setTalebeler] = useState<Talebe[]>([]);
@@ -191,6 +204,17 @@ function Index() {
     void talebeSil(id);
   };
 
+  const kiraatGunToggle = (t: Talebe, gun: number) => {
+    const key = String(seciliHafta);
+    const mevcut = getKiraatGunler(t, seciliHafta);
+    const yeni = toggleGun(mevcut, gun);
+    const harita = { ...(t.kiraatGunler ?? {}), [key]: yeni };
+    void talebeGuncelle(t.id, {
+      kiraatGunler: harita,
+      kiraat: yeni.length > 0,
+    });
+  };
+
   const ekle = () => {
     const yeniNo = talebeler.length + 1;
     const enBuyukSira = talebeler.reduce(
@@ -218,9 +242,11 @@ function Index() {
 
   const ozet = useMemo(() => {
     const toplam = talebeler.length;
-    const kiraatSayi = talebeler.filter((t) => t.kiraat).length;
+    const kiraatSayi = talebeler.filter(
+      (t) => getKiraatGunler(t, seciliHafta).length > 0,
+    ).length;
     return { toplam, kiraatSayi };
-  }, [talebeler]);
+  }, [talebeler, seciliHafta]);
 
   const [topluHedefTaslak, setTopluHedefTaslak] = useState("5");
   const [topluHedefHata, setTopluHedefHata] = useState<string | null>(null);
@@ -454,7 +480,11 @@ function Index() {
                     </TableCell>
                     <TableCell className="font-medium">{t.isim}</TableCell>
                     <TableCell className="text-center">
-                      <DurumRozet verildi={t.kiraat} />
+                      <KiraatGunler
+                        gunler={getKiraatGunler(t, seciliHafta)}
+                        duzenlenebilir={hocaModu}
+                        onToggle={(g) => kiraatGunToggle(t, g)}
+                      />
                     </TableCell>
                     <TableCell className="text-center tabular-nums">
                       {t.sayfa}
@@ -613,22 +643,46 @@ function OzetKart({ etiket, deger }: { etiket: string; deger: number | string })
   );
 }
 
-function DurumRozet({ verildi }: { verildi: boolean }) {
+function KiraatGunler({
+  gunler,
+  duzenlenebilir,
+  onToggle,
+}: {
+  gunler: number[];
+  duzenlenebilir: boolean;
+  onToggle: (g: number) => void;
+}) {
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        verildi
-          ? "bg-primary/10 text-primary"
-          : "bg-muted text-muted-foreground"
-      }`}
-    >
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${
-          verildi ? "bg-primary" : "bg-muted-foreground/40"
-        }`}
-      />
-      {verildi ? "Verdi" : "Vermedi"}
-    </span>
+    <div className="flex flex-wrap justify-center gap-1">
+      {GUN_KISA.map((isim, i) => {
+        const aktif = gunler.includes(i);
+        const sinif = aktif
+          ? "bg-primary text-primary-foreground border-primary"
+          : "bg-muted/40 text-muted-foreground border-border";
+        if (duzenlenebilir) {
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onToggle(i)}
+              className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-primary/80 hover:text-primary-foreground ${sinif}`}
+              title={isim}
+            >
+              {isim[0]}
+            </button>
+          );
+        }
+        return (
+          <span
+            key={i}
+            className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${sinif}`}
+            title={isim}
+          >
+            {isim[0]}
+          </span>
+        );
+      })}
+    </div>
   );
 }
 
@@ -686,7 +740,7 @@ function DuzenleDiyalog({
   onKaydet: (p: Partial<Talebe>) => void;
 }) {
   const [isim, setIsim] = useState("");
-  const [kiraat, setKiraat] = useState(false);
+  
   const [sayfaTaslak, setSayfaTaslak] = useState("1");
   const [sayfaHata, setSayfaHata] = useState<string | null>(null);
   const [hedefTaslak, setHedefTaslak] = useState("5");
@@ -695,7 +749,7 @@ function DuzenleDiyalog({
   useEffect(() => {
     if (talebe) {
       setIsim(talebe.isim);
-      setKiraat(talebe.kiraat);
+      
       setSayfaTaslak(String(talebe.sayfa));
       setHedefTaslak(String(talebe.hedefHaftalik ?? 5));
       setSayfaHata(null);
@@ -745,7 +799,7 @@ function DuzenleDiyalog({
     if (sayfa === null || hedef === null) return;
     const temizIsim = isim.trim().slice(0, 60);
     if (!temizIsim) return;
-    onKaydet({ isim: temizIsim, kiraat, sayfa, hedefHaftalik: hedef });
+    onKaydet({ isim: temizIsim, sayfa, hedefHaftalik: hedef });
   };
 
   const cuz = /^\d+$/.test(sayfaTaslak)
@@ -772,7 +826,9 @@ function DuzenleDiyalog({
             />
           </div>
 
-          <DersKutu etiket="Kıraat" verildi={kiraat} onChange={setKiraat} />
+          <p className="text-xs text-muted-foreground">
+            Kıraat günlerini ana tablodaki gün rozetlerinden işaretleyebilirsiniz.
+          </p>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
