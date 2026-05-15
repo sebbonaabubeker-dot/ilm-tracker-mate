@@ -749,7 +749,7 @@ function DuzenleDiyalog({
   useEffect(() => {
     if (talebe) {
       setIsim(talebe.isim);
-      setKiraat(talebe.kiraat);
+      
       setSayfaTaslak(String(talebe.sayfa));
       setHedefTaslak(String(talebe.hedefHaftalik ?? 5));
       setSayfaHata(null);
