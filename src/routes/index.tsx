@@ -685,23 +685,6 @@ function KiraatGunler({
     </div>
   );
 }
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        verildi
-          ? "bg-primary/10 text-primary"
-          : "bg-muted text-muted-foreground"
-      }`}
-    >
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${
-          verildi ? "bg-primary" : "bg-muted-foreground/40"
-        }`}
-      />
-      {verildi ? "Verdi" : "Vermedi"}
-    </span>
-  );
-}
 
 function IlerlemeRozet({ sayfa }: { sayfa: number }) {
   return (
