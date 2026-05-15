@@ -740,7 +740,7 @@ function DuzenleDiyalog({
   onKaydet: (p: Partial<Talebe>) => void;
 }) {
   const [isim, setIsim] = useState("");
-  const [kiraat, setKiraat] = useState(false);
+  
   const [sayfaTaslak, setSayfaTaslak] = useState("1");
   const [sayfaHata, setSayfaHata] = useState<string | null>(null);
   const [hedefTaslak, setHedefTaslak] = useState("5");
