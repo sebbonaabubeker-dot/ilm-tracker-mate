@@ -480,7 +480,11 @@ function Index() {
                     </TableCell>
                     <TableCell className="font-medium">{t.isim}</TableCell>
                     <TableCell className="text-center">
-                      <DurumRozet verildi={t.kiraat} />
+                      <KiraatGunler
+                        gunler={getKiraatGunler(t, seciliHafta)}
+                        duzenlenebilir={hocaModu}
+                        onToggle={(g) => kiraatGunToggle(t, g)}
+                      />
                     </TableCell>
                     <TableCell className="text-center tabular-nums">
                       {t.sayfa}
