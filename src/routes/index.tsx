@@ -653,20 +653,16 @@ function HedefRozet({ yapilan, hedef }: { yapilan: number; hedef: number }) {
     );
   }
   const oran = Math.round((yapilan / hedef) * 100);
-  const oranSinirli = Math.min(100, oran);
   let renk = "bg-destructive/10 text-destructive";
   let nokta = "bg-destructive";
-  let bar = "bg-destructive";
   let etiket = "Geride";
   if (oran >= 100) {
     renk = "bg-primary/10 text-primary";
     nokta = "bg-primary";
-    bar = "bg-primary";
     etiket = "Hedefte";
   } else if (oran >= 50) {
     renk = "bg-amber-500/15 text-amber-600 dark:text-amber-400";
     nokta = "bg-amber-500";
-    bar = "bg-amber-500";
     etiket = "Yolda";
   }
   return (
