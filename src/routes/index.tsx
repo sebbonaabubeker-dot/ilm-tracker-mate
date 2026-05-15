@@ -653,38 +653,26 @@ function HedefRozet({ yapilan, hedef }: { yapilan: number; hedef: number }) {
     );
   }
   const oran = Math.round((yapilan / hedef) * 100);
-  const oranSinirli = Math.min(100, oran);
   let renk = "bg-destructive/10 text-destructive";
   let nokta = "bg-destructive";
-  let bar = "bg-destructive";
   let etiket = "Geride";
   if (oran >= 100) {
     renk = "bg-primary/10 text-primary";
     nokta = "bg-primary";
-    bar = "bg-primary";
     etiket = "Hedefte";
   } else if (oran >= 50) {
     renk = "bg-amber-500/15 text-amber-600 dark:text-amber-400";
     nokta = "bg-amber-500";
-    bar = "bg-amber-500";
     etiket = "Yolda";
   }
   return (
-    <div className="mx-auto flex w-24 flex-col items-center gap-1">
-      <span
-        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${renk}`}
-        title={`${yapilan} / ${hedef} sf`}
-      >
-        <span className={`h-1.5 w-1.5 rounded-full ${nokta}`} />
-        {etiket} · %{oran}
-      </span>
-      <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className={`h-full ${bar} transition-all`}
-          style={{ width: `${oranSinirli}%` }}
-        />
-      </div>
-    </div>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0 text-[10px] font-medium leading-tight tabular-nums ${renk}`}
+      title={`${yapilan} / ${hedef} sf · ${etiket}`}
+    >
+      <span className={`h-1 w-1 rounded-full ${nokta}`} />
+      %{oran}
+    </span>
   );
 }
 
