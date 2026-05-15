@@ -109,7 +109,19 @@ function haftaEtiket(baslangic: number) {
   return `${fmt(b)} – ${fmt(s)}`;
 }
 
-function Index() {
+const GUN_KISA = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Pzr"] as const;
+
+function getKiraatGunler(t: Talebe, haftaBas: number): number[] {
+  const k = t.kiraatGunler?.[String(haftaBas)];
+  return Array.isArray(k) ? [...k].sort((a, b) => a - b) : [];
+}
+
+function toggleGun(mevcut: number[], gun: number): number[] {
+  return mevcut.includes(gun)
+    ? mevcut.filter((g) => g !== gun)
+    : [...mevcut, gun].sort((a, b) => a - b);
+}
+
   const [hoca, setHoca] = useState("Hocaefendi");
   const [talebeler, setTalebeler] = useState<Talebe[]>([]);
   const [yuklendi, setYuklendi] = useState(false);
