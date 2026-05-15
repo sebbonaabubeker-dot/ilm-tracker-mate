@@ -204,6 +204,17 @@ function Index() {
     void talebeSil(id);
   };
 
+  const kiraatGunToggle = (t: Talebe, gun: number) => {
+    const key = String(seciliHafta);
+    const mevcut = getKiraatGunler(t, seciliHafta);
+    const yeni = toggleGun(mevcut, gun);
+    const harita = { ...(t.kiraatGunler ?? {}), [key]: yeni };
+    void talebeGuncelle(t.id, {
+      kiraatGunler: harita,
+      kiraat: yeni.length > 0,
+    });
+  };
+
   const ekle = () => {
     const yeniNo = talebeler.length + 1;
     const enBuyukSira = talebeler.reduce(
