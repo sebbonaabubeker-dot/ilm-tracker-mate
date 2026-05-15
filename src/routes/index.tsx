@@ -826,7 +826,9 @@ function DuzenleDiyalog({
             />
           </div>
 
-          <DersKutu etiket="Kıraat" verildi={kiraat} onChange={setKiraat} />
+          <p className="text-xs text-muted-foreground">
+            Kıraat günlerini ana tablodaki gün rozetlerinden işaretleyebilirsiniz.
+          </p>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
