@@ -40,6 +40,10 @@ export function talebeleriDinle(
           id: d.id,
           isim: v.isim ?? "Talebe",
           kiraat: !!v.kiraat,
+          kiraatGunler:
+            v.kiraatGunler && typeof v.kiraatGunler === "object"
+              ? (v.kiraatGunler as Record<string, number[]>)
+              : {},
           sayfa: typeof v.sayfa === "number" ? v.sayfa : 1,
           hedefHaftalik:
             typeof v.hedefHaftalik === "number" ? v.hedefHaftalik : 5,
