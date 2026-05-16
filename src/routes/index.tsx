@@ -482,7 +482,23 @@ function Index() {
                 <TableRow className="bg-muted/40">
                   <TableHead className="w-12 text-center">#</TableHead>
                   <TableHead>Talebe</TableHead>
-                  <TableHead className="text-center">Kıraat</TableHead>
+                  <TableHead className="text-center">
+                    <Select
+                      value={String(seciliGun)}
+                      onValueChange={(v) => setSeciliGun(Number(v))}
+                    >
+                      <SelectTrigger className="mx-auto h-7 w-[120px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GUN_UZUN.map((isim, i) => (
+                          <SelectItem key={i} value={String(i)} className="text-xs">
+                            Kıraat · {isim}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
                   <TableHead className="text-center">Hedef</TableHead>
