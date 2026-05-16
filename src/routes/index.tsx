@@ -708,7 +708,40 @@ function KiraatGunler({
               {isim[0]}
             </button>
           );
-        }
+}
+
+function GunDurum({
+  verdi,
+  duzenlenebilir,
+  onToggle,
+}: {
+  verdi: boolean;
+  duzenlenebilir: boolean;
+  onToggle: () => void;
+}) {
+  const sinif = verdi
+    ? "bg-primary text-primary-foreground border-primary"
+    : "bg-muted/40 text-muted-foreground border-border";
+  const etiket = verdi ? "Verdi" : "Vermedi";
+  if (duzenlenebilir) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors hover:opacity-90 ${sinif}`}
+      >
+        {etiket}
+      </button>
+    );
+  }
+  return (
+    <span
+      className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${sinif}`}
+    >
+      {etiket}
+    </span>
+  );
+}
         return (
           <span
             key={i}
