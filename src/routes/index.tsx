@@ -72,7 +72,16 @@ export const Route = createFileRoute("/")({
 const SAYFA_BASINA_CUZ = 20;
 const HOCA_OTURUM_KEY = "talebe-takip-hoca-oturum";
 const HOCA_AD_KEY = "talebe-takip-hoca-ad";
+const HOCA_PAROLA_KEY = "talebe-takip-hoca-parola";
 const VARSAYILAN_PAROLA = "1453";
+
+function mevcutParola(): string {
+  try {
+    return localStorage.getItem(HOCA_PAROLA_KEY) || VARSAYILAN_PAROLA;
+  } catch {
+    return VARSAYILAN_PAROLA;
+  }
+}
 
 function cuzHesapla(sayfa: number) {
   if (sayfa < 1) return 1;
@@ -158,6 +167,12 @@ function Index() {
   const [hocaTaslak, setHocaTaslak] = useState(hoca);
   const [seciliHafta, setSeciliHafta] = useState<number>(() => haftaBaslastik());
   const [seciliGun, setSeciliGun] = useState<number>(() => bugununGunu());
+
+  const [parolaDegistirAcik, setParolaDegistirAcik] = useState(false);
+  const [eskiParola, setEskiParola] = useState("");
+  const [yeniParola, setYeniParola] = useState("");
+  const [yeniParolaTekrar, setYeniParolaTekrar] = useState("");
+  const [parolaDegistirHata, setParolaDegistirHata] = useState<string | null>(null);
 
   function haftaBaslastik() {
     return haftaBaslangici();
@@ -291,7 +306,7 @@ function Index() {
   };
 
   const girisYap = () => {
-    if (parolaTaslak === VARSAYILAN_PAROLA) {
+    if (parolaTaslak === mevcutParola()) {
       setHocaModu(true);
       sessionStorage.setItem(HOCA_OTURUM_KEY, "1");
       setGirisAcik(false);
@@ -305,6 +320,29 @@ function Index() {
   const cikisYap = () => {
     setHocaModu(false);
     sessionStorage.removeItem(HOCA_OTURUM_KEY);
+  };
+
+  const parolaDegistir = () => {
+    if (eskiParola !== mevcutParola()) {
+      setParolaDegistirHata("Mevcut parola hatalı");
+      return;
+    }
+    if (yeniParola.length < 3) {
+      setParolaDegistirHata("Yeni parola en az 3 karakter olmalı");
+      return;
+    }
+    if (yeniParola !== yeniParolaTekrar) {
+      setParolaDegistirHata("Yeni parolalar eşleşmiyor");
+      return;
+    }
+    try {
+      localStorage.setItem(HOCA_PAROLA_KEY, yeniParola);
+    } catch {}
+    setParolaDegistirAcik(false);
+    setEskiParola("");
+    setYeniParola("");
+    setYeniParolaTekrar("");
+    setParolaDegistirHata(null);
   };
 
   return (
@@ -383,6 +421,19 @@ function Index() {
                   <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                     Düzenleme modu
                   </span>
+              <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setEskiParola("");
+                      setYeniParola("");
+                      setYeniParolaTekrar("");
+                      setParolaDegistirHata(null);
+                      setParolaDegistirAcik(true);
+                    }}
+                  >
+                    Parola
+                  </Button>
                   <Button size="sm" variant="outline" onClick={cikisYap}>
                     <LogOut className="h-4 w-4" /> Çıkış
                   </Button>
@@ -618,8 +669,7 @@ function Index() {
           <DialogHeader>
             <DialogTitle>Hocaefendi Girişi</DialogTitle>
             <DialogDescription>
-              Düzenleme yapabilmek için parola giriniz. Varsayılan:{" "}
-              <span className="font-mono">{VARSAYILAN_PAROLA}</span>
+              Düzenleme yapabilmek için parola giriniz.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -649,6 +699,75 @@ function Index() {
               İptal
             </Button>
             <Button onClick={girisYap}>Giriş Yap</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={parolaDegistirAcik}
+        onOpenChange={(o) => {
+          setParolaDegistirAcik(o);
+          if (!o) {
+            setEskiParola("");
+            setYeniParola("");
+            setYeniParolaTekrar("");
+            setParolaDegistirHata(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Parola Değiştir</DialogTitle>
+            <DialogDescription>
+              Yeni parolanızı belirleyin.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Mevcut parola</Label>
+              <Input
+                type="password"
+                value={eskiParola}
+                onChange={(e) => {
+                  setEskiParola(e.target.value.slice(0, 50));
+                  setParolaDegistirHata(null);
+                }}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Yeni parola</Label>
+              <Input
+                type="password"
+                value={yeniParola}
+                onChange={(e) => {
+                  setYeniParola(e.target.value.slice(0, 50));
+                  setParolaDegistirHata(null);
+                }}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Yeni parola (tekrar)</Label>
+              <Input
+                type="password"
+                value={yeniParolaTekrar}
+                onChange={(e) => {
+                  setYeniParolaTekrar(e.target.value.slice(0, 50));
+                  setParolaDegistirHata(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") parolaDegistir();
+                }}
+              />
+            </div>
+            {parolaDegistirHata && (
+              <p className="text-xs text-destructive">{parolaDegistirHata}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setParolaDegistirAcik(false)}>
+              İptal
+            </Button>
+            <Button onClick={parolaDegistir}>Değiştir</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
