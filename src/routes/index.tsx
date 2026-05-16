@@ -72,7 +72,16 @@ export const Route = createFileRoute("/")({
 const SAYFA_BASINA_CUZ = 20;
 const HOCA_OTURUM_KEY = "talebe-takip-hoca-oturum";
 const HOCA_AD_KEY = "talebe-takip-hoca-ad";
+const HOCA_PAROLA_KEY = "talebe-takip-hoca-parola";
 const VARSAYILAN_PAROLA = "1453";
+
+function mevcutParola(): string {
+  try {
+    return localStorage.getItem(HOCA_PAROLA_KEY) || VARSAYILAN_PAROLA;
+  } catch {
+    return VARSAYILAN_PAROLA;
+  }
+}
 
 function cuzHesapla(sayfa: number) {
   if (sayfa < 1) return 1;
