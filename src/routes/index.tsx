@@ -708,7 +708,6 @@ function KiraatGunler({
               {isim[0]}
             </button>
           );
-          );
         }
         return (
           <span
