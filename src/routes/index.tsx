@@ -755,19 +755,6 @@ function GunDurum({
     </span>
   );
 }
-        return (
-          <span
-            key={i}
-            className={`rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${sinif}`}
-            title={isim}
-          >
-            {isim[0]}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
 
 function IlerlemeRozet({ sayfa }: { sayfa: number }) {
   return (
