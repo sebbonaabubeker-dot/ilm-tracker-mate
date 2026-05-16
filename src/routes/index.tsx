@@ -322,6 +322,29 @@ function Index() {
     sessionStorage.removeItem(HOCA_OTURUM_KEY);
   };
 
+  const parolaDegistir = () => {
+    if (eskiParola !== mevcutParola()) {
+      setParolaDegistirHata("Mevcut parola hatalı");
+      return;
+    }
+    if (yeniParola.length < 3) {
+      setParolaDegistirHata("Yeni parola en az 3 karakter olmalı");
+      return;
+    }
+    if (yeniParola !== yeniParolaTekrar) {
+      setParolaDegistirHata("Yeni parolalar eşleşmiyor");
+      return;
+    }
+    try {
+      localStorage.setItem(HOCA_PAROLA_KEY, yeniParola);
+    } catch {}
+    setParolaDegistirAcik(false);
+    setEskiParola("");
+    setYeniParola("");
+    setYeniParolaTekrar("");
+    setParolaDegistirHata(null);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-3 py-8 sm:px-6 sm:py-12">
