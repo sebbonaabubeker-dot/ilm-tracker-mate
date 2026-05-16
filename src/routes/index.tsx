@@ -306,7 +306,7 @@ function Index() {
   };
 
   const girisYap = () => {
-    if (parolaTaslak === VARSAYILAN_PAROLA) {
+    if (parolaTaslak === mevcutParola()) {
       setHocaModu(true);
       sessionStorage.setItem(HOCA_OTURUM_KEY, "1");
       setGirisAcik(false);
