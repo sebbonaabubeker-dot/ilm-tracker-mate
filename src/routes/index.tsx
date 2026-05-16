@@ -646,8 +646,7 @@ function Index() {
           <DialogHeader>
             <DialogTitle>Hocaefendi Girişi</DialogTitle>
             <DialogDescription>
-              Düzenleme yapabilmek için parola giriniz. Varsayılan:{" "}
-              <span className="font-mono">{VARSAYILAN_PAROLA}</span>
+              Düzenleme yapabilmek için parola giriniz.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
