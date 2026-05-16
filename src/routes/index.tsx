@@ -517,10 +517,10 @@ function Index() {
                     </TableCell>
                     <TableCell className="font-medium">{t.isim}</TableCell>
                     <TableCell className="text-center">
-                      <KiraatGunler
-                        gunler={getKiraatGunler(t, seciliHafta)}
+                      <GunDurum
+                        verdi={getKiraatGunler(t, seciliHafta).includes(seciliGun)}
                         duzenlenebilir={hocaModu}
-                        onToggle={(g) => kiraatGunToggle(t, g)}
+                        onToggle={() => kiraatGunToggle(t, seciliGun)}
                       />
                     </TableCell>
                     <TableCell className="text-center tabular-nums">
