@@ -703,6 +703,75 @@ function Index() {
         </DialogContent>
       </Dialog>
 
+      <Dialog
+        open={parolaDegistirAcik}
+        onOpenChange={(o) => {
+          setParolaDegistirAcik(o);
+          if (!o) {
+            setEskiParola("");
+            setYeniParola("");
+            setYeniParolaTekrar("");
+            setParolaDegistirHata(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Parola Değiştir</DialogTitle>
+            <DialogDescription>
+              Yeni parolanızı belirleyin.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Mevcut parola</Label>
+              <Input
+                type="password"
+                value={eskiParola}
+                onChange={(e) => {
+                  setEskiParola(e.target.value.slice(0, 50));
+                  setParolaDegistirHata(null);
+                }}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Yeni parola</Label>
+              <Input
+                type="password"
+                value={yeniParola}
+                onChange={(e) => {
+                  setYeniParola(e.target.value.slice(0, 50));
+                  setParolaDegistirHata(null);
+                }}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Yeni parola (tekrar)</Label>
+              <Input
+                type="password"
+                value={yeniParolaTekrar}
+                onChange={(e) => {
+                  setYeniParolaTekrar(e.target.value.slice(0, 50));
+                  setParolaDegistirHata(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") parolaDegistir();
+                }}
+              />
+            </div>
+            {parolaDegistirHata && (
+              <p className="text-xs text-destructive">{parolaDegistirHata}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setParolaDegistirAcik(false)}>
+              İptal
+            </Button>
+            <Button onClick={parolaDegistir}>Değiştir</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <DuzenleDiyalog
         talebe={duzenlenen}
         onClose={() => setDuzenlenen(null)}
