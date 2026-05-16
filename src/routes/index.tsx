@@ -157,6 +157,7 @@ function Index() {
   const [hocaDuzenle, setHocaDuzenle] = useState(false);
   const [hocaTaslak, setHocaTaslak] = useState(hoca);
   const [seciliHafta, setSeciliHafta] = useState<number>(() => haftaBaslastik());
+  const [seciliGun, setSeciliGun] = useState<number>(() => bugununGunu());
 
   function haftaBaslastik() {
     return haftaBaslangici();
