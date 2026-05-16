@@ -22,6 +22,13 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   GraduationCap,
   Lock,
   LogOut,
@@ -110,6 +117,19 @@ function haftaEtiket(baslangic: number) {
 }
 
 const GUN_KISA = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Pzr"] as const;
+const GUN_UZUN = [
+  "Pazartesi",
+  "Salı",
+  "Çarşamba",
+  "Perşembe",
+  "Cuma",
+  "Cumartesi",
+  "Pazar",
+] as const;
+
+function bugununGunu(): number {
+  return (new Date().getDay() + 6) % 7; // Pzt=0
+}
 
 function getKiraatGunler(t: Talebe, haftaBas: number): number[] {
   const k = t.kiraatGunler?.[String(haftaBas)];
@@ -137,6 +157,7 @@ function Index() {
   const [hocaDuzenle, setHocaDuzenle] = useState(false);
   const [hocaTaslak, setHocaTaslak] = useState(hoca);
   const [seciliHafta, setSeciliHafta] = useState<number>(() => haftaBaslastik());
+  const [seciliGun, setSeciliGun] = useState<number>(() => bugununGunu());
 
   function haftaBaslastik() {
     return haftaBaslangici();
@@ -461,7 +482,23 @@ function Index() {
                 <TableRow className="bg-muted/40">
                   <TableHead className="w-12 text-center">#</TableHead>
                   <TableHead>Talebe</TableHead>
-                  <TableHead className="text-center">Kıraat</TableHead>
+                  <TableHead className="text-center">
+                    <Select
+                      value={String(seciliGun)}
+                      onValueChange={(v) => setSeciliGun(Number(v))}
+                    >
+                      <SelectTrigger className="mx-auto h-7 w-[120px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GUN_UZUN.map((isim, i) => (
+                          <SelectItem key={i} value={String(i)} className="text-xs">
+                            Kıraat · {isim}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
                   <TableHead className="text-center">Hedef</TableHead>
@@ -480,10 +517,10 @@ function Index() {
                     </TableCell>
                     <TableCell className="font-medium">{t.isim}</TableCell>
                     <TableCell className="text-center">
-                      <KiraatGunler
-                        gunler={getKiraatGunler(t, seciliHafta)}
+                      <GunDurum
+                        verdi={getKiraatGunler(t, seciliHafta).includes(seciliGun)}
                         duzenlenebilir={hocaModu}
-                        onToggle={(g) => kiraatGunToggle(t, g)}
+                        onToggle={() => kiraatGunToggle(t, seciliGun)}
                       />
                     </TableCell>
                     <TableCell className="text-center tabular-nums">
@@ -683,6 +720,39 @@ function KiraatGunler({
         );
       })}
     </div>
+  );
+}
+
+function GunDurum({
+  verdi,
+  duzenlenebilir,
+  onToggle,
+}: {
+  verdi: boolean;
+  duzenlenebilir: boolean;
+  onToggle: () => void;
+}) {
+  const sinif = verdi
+    ? "bg-primary text-primary-foreground border-primary"
+    : "bg-muted/40 text-muted-foreground border-border";
+  const etiket = verdi ? "Verdi" : "Vermedi";
+  if (duzenlenebilir) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors hover:opacity-90 ${sinif}`}
+      >
+        {etiket}
+      </button>
+    );
+  }
+  return (
+    <span
+      className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${sinif}`}
+    >
+      {etiket}
+    </span>
   );
 }
 
