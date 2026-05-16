@@ -117,6 +117,19 @@ function haftaEtiket(baslangic: number) {
 }
 
 const GUN_KISA = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Pzr"] as const;
+const GUN_UZUN = [
+  "Pazartesi",
+  "Salı",
+  "Çarşamba",
+  "Perşembe",
+  "Cuma",
+  "Cumartesi",
+  "Pazar",
+] as const;
+
+function bugununGunu(): number {
+  return (new Date().getDay() + 6) % 7; // Pzt=0
+}
 
 function getKiraatGunler(t: Talebe, haftaBas: number): number[] {
   const k = t.kiraatGunler?.[String(haftaBas)];
