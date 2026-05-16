@@ -398,6 +398,19 @@ function Index() {
                   <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                     Düzenleme modu
                   </span>
+              <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setEskiParola("");
+                      setYeniParola("");
+                      setYeniParolaTekrar("");
+                      setParolaDegistirHata(null);
+                      setParolaDegistirAcik(true);
+                    }}
+                  >
+                    Parola
+                  </Button>
                   <Button size="sm" variant="outline" onClick={cikisYap}>
                     <LogOut className="h-4 w-4" /> Çıkış
                   </Button>
