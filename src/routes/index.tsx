@@ -168,6 +168,12 @@ function Index() {
   const [seciliHafta, setSeciliHafta] = useState<number>(() => haftaBaslastik());
   const [seciliGun, setSeciliGun] = useState<number>(() => bugununGunu());
 
+  const [parolaDegistirAcik, setParolaDegistirAcik] = useState(false);
+  const [eskiParola, setEskiParola] = useState("");
+  const [yeniParola, setYeniParola] = useState("");
+  const [yeniParolaTekrar, setYeniParolaTekrar] = useState("");
+  const [parolaDegistirHata, setParolaDegistirHata] = useState<string | null>(null);
+
   function haftaBaslastik() {
     return haftaBaslangici();
   }
