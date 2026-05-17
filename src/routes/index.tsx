@@ -73,11 +73,17 @@ const SAYFA_BASINA_CUZ = 20;
 const HOCA_OTURUM_KEY = "talebe-takip-hoca-oturum";
 const HOCA_AD_KEY = "talebe-takip-hoca-ad";
 const HOCA_PAROLA_KEY = "talebe-takip-hoca-parola";
-const VARSAYILAN_PAROLA = "1453";
+const VARSAYILAN_PAROLA = "siec0998";
 
 function mevcutParola(): string {
   try {
-    return localStorage.getItem(HOCA_PAROLA_KEY) || VARSAYILAN_PAROLA;
+    const kayitli = localStorage.getItem(HOCA_PAROLA_KEY);
+    // Eski parolayı temizle, herkes yeni varsayılan ile girebilsin
+    if (kayitli && kayitli !== VARSAYILAN_PAROLA) {
+      localStorage.removeItem(HOCA_PAROLA_KEY);
+      return VARSAYILAN_PAROLA;
+    }
+    return kayitli || VARSAYILAN_PAROLA;
   } catch {
     return VARSAYILAN_PAROLA;
   }
