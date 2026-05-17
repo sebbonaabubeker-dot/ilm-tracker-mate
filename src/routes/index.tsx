@@ -164,7 +164,17 @@ function toggleGun(mevcut: number[], gun: number): number[] {
 
 function Index() {
   const [hoca, setHoca] = useState("Hocaefendi");
-  const [talebeler, setTalebeler] = useState<Talebe[]>([]);
+  const [talebeler, setTalebeler] = useState<Talebe[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(TALEBE_CACHE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? (parsed as Talebe[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [yuklendi, setYuklendi] = useState(false);
   const [yuklemeHata, setYuklemeHata] = useState<string | null>(null);
 
