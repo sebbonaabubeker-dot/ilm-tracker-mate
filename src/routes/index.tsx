@@ -636,7 +636,7 @@ function Index() {
                   </TableRow>
                   );
                 })}
-                {!yuklendi && (
+                {!yuklendi && talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={hocaModu ? 8 : 7}
