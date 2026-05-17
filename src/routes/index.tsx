@@ -104,17 +104,21 @@ function haftaBaslangici(d = new Date()) {
   return x.getTime();
 }
 
+function sayfaOnceFn(t: Talebe, esik: number) {
+  const oncekiler = t.gecmis.filter((g) => g.t < esik);
+  return oncekiler.length > 0
+    ? oncekiler[oncekiler.length - 1].sayfa
+    : t.gecmis[0]?.sayfa ?? t.sayfa;
+}
+
 function ilerleme(t: Talebe, baslangic: number, bitis: number) {
-  // [baslangic, bitis) aralığında ilerleme: bitis öncesi son sayfa - baslangic öncesi son sayfa
-  const sayfaOnce = (esik: number) => {
-    const oncekiler = t.gecmis.filter((g) => g.t < esik);
-    return oncekiler.length > 0
-      ? oncekiler[oncekiler.length - 1].sayfa
-      : t.gecmis[0]?.sayfa ?? t.sayfa;
-  };
-  const baz = sayfaOnce(baslangic);
-  const son = sayfaOnce(bitis);
+  const baz = sayfaOnceFn(t, baslangic);
+  const son = sayfaOnceFn(t, bitis);
   return Math.max(0, son - baz);
+}
+
+function haftaBazSayfa(t: Talebe, baslangic: number) {
+  return sayfaOnceFn(t, baslangic);
 }
 
 function haftaEtiket(baslangic: number) {
@@ -581,7 +585,11 @@ function Index() {
                       {cuzHesapla(t.sayfa)}
                     </TableCell>
                     <TableCell className="text-center">
-                      <HedefRozet yapilan={hafta} hedef={t.hedefHaftalik} />
+                      <HedefRozet
+                        yapilan={hafta}
+                        hedef={t.hedefHaftalik}
+                        bazSayfa={haftaBazSayfa(t, seciliHafta)}
+                      />
                     </TableCell>
                     {hocaModu && (
                       <TableCell className="text-right">
@@ -889,12 +897,19 @@ function IlerlemeRozet({ sayfa }: { sayfa: number }) {
   );
 }
 
-function HedefRozet({ yapilan, hedef }: { yapilan: number; hedef: number }) {
+function HedefRozet({
+  yapilan,
+  hedef,
+  bazSayfa,
+}: {
+  yapilan: number;
+  hedef: number;
+  bazSayfa: number;
+}) {
   if (!hedef || hedef <= 0) {
-    return (
-      <span className="text-xs text-muted-foreground">—</span>
-    );
+    return <span className="text-xs text-muted-foreground">—</span>;
   }
+  const hedefSayfa = Math.min(604, bazSayfa + hedef);
   const oran = Math.round((yapilan / hedef) * 100);
   let renk = "bg-destructive/10 text-destructive";
   let nokta = "bg-destructive";
@@ -909,13 +924,18 @@ function HedefRozet({ yapilan, hedef }: { yapilan: number; hedef: number }) {
     etiket = "Yolda";
   }
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0 text-[10px] font-medium leading-tight tabular-nums ${renk}`}
-      title={`${yapilan} / ${hedef} sf · ${etiket}`}
-    >
-      <span className={`h-1 w-1 rounded-full ${nokta}`} />
-      %{oran}
-    </span>
+    <div className="flex flex-col items-center gap-0.5">
+      <span className="text-xs font-semibold tabular-nums text-foreground">
+        s.{hedefSayfa}
+      </span>
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0 text-[10px] font-medium leading-tight tabular-nums ${renk}`}
+        title={`${yapilan} / ${hedef} sf · hedef sayfa ${hedefSayfa} · ${etiket}`}
+      >
+        <span className={`h-1 w-1 rounded-full ${nokta}`} />
+        %{oran}
+      </span>
+    </div>
   );
 }
 
