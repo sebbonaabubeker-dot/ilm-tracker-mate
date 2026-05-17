@@ -104,17 +104,21 @@ function haftaBaslangici(d = new Date()) {
   return x.getTime();
 }
 
+function sayfaOnceFn(t: Talebe, esik: number) {
+  const oncekiler = t.gecmis.filter((g) => g.t < esik);
+  return oncekiler.length > 0
+    ? oncekiler[oncekiler.length - 1].sayfa
+    : t.gecmis[0]?.sayfa ?? t.sayfa;
+}
+
 function ilerleme(t: Talebe, baslangic: number, bitis: number) {
-  // [baslangic, bitis) aralığında ilerleme: bitis öncesi son sayfa - baslangic öncesi son sayfa
-  const sayfaOnce = (esik: number) => {
-    const oncekiler = t.gecmis.filter((g) => g.t < esik);
-    return oncekiler.length > 0
-      ? oncekiler[oncekiler.length - 1].sayfa
-      : t.gecmis[0]?.sayfa ?? t.sayfa;
-  };
-  const baz = sayfaOnce(baslangic);
-  const son = sayfaOnce(bitis);
+  const baz = sayfaOnceFn(t, baslangic);
+  const son = sayfaOnceFn(t, bitis);
   return Math.max(0, son - baz);
+}
+
+function haftaBazSayfa(t: Talebe, baslangic: number) {
+  return sayfaOnceFn(t, baslangic);
 }
 
 function haftaEtiket(baslangic: number) {
