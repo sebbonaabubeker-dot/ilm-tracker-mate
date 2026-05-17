@@ -235,6 +235,9 @@ function Index() {
       (liste) => {
         setTalebeler(liste);
         setYuklendi(true);
+        try {
+          localStorage.setItem(TALEBE_CACHE_KEY, JSON.stringify(liste));
+        } catch {}
       },
       (e) => {
         setYuklemeHata(e.message);
