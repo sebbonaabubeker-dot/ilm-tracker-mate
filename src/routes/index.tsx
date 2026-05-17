@@ -585,7 +585,11 @@ function Index() {
                       {cuzHesapla(t.sayfa)}
                     </TableCell>
                     <TableCell className="text-center">
-                      <HedefRozet yapilan={hafta} hedef={t.hedefHaftalik} />
+                      <HedefRozet
+                        yapilan={hafta}
+                        hedef={t.hedefHaftalik}
+                        bazSayfa={haftaBazSayfa(t, seciliHafta)}
+                      />
                     </TableCell>
                     {hocaModu && (
                       <TableCell className="text-right">
