@@ -72,6 +72,7 @@ export const Route = createFileRoute("/")({
 const SAYFA_BASINA_CUZ = 20;
 const HOCA_OTURUM_KEY = "talebe-takip-hoca-oturum";
 const HOCA_AD_KEY = "talebe-takip-hoca-ad";
+const TALEBE_CACHE_KEY = "talebe-takip-cache-v1";
 const HOCA_PAROLA_KEY = "talebe-takip-hoca-parola";
 const VARSAYILAN_PAROLA = "siec0998";
 
@@ -163,7 +164,17 @@ function toggleGun(mevcut: number[], gun: number): number[] {
 
 function Index() {
   const [hoca, setHoca] = useState("Hocaefendi");
-  const [talebeler, setTalebeler] = useState<Talebe[]>([]);
+  const [talebeler, setTalebeler] = useState<Talebe[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(TALEBE_CACHE_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? (parsed as Talebe[]) : [];
+    } catch {
+      return [];
+    }
+  });
   const [yuklendi, setYuklendi] = useState(false);
   const [yuklemeHata, setYuklemeHata] = useState<string | null>(null);
 
@@ -224,6 +235,9 @@ function Index() {
       (liste) => {
         setTalebeler(liste);
         setYuklendi(true);
+        try {
+          localStorage.setItem(TALEBE_CACHE_KEY, JSON.stringify(liste));
+        } catch {}
       },
       (e) => {
         setYuklemeHata(e.message);
@@ -622,7 +636,7 @@ function Index() {
                   </TableRow>
                   );
                 })}
-                {!yuklendi && (
+                {!yuklendi && talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
                       colSpan={hocaModu ? 8 : 7}
@@ -931,9 +945,6 @@ function HedefRozet({
   }
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <span className="text-xs font-semibold tabular-nums text-foreground">
-        s.{hedefSayfa}
-      </span>
       <span
         className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0 text-[10px] font-medium leading-tight tabular-nums ${renk}`}
         title={`${yapilan} / ${hedef} sf · hedef sayfa ${hedefSayfa} · ${etiket}`}
