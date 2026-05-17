@@ -931,9 +931,6 @@ function HedefRozet({
   }
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <span className="text-xs font-semibold tabular-nums text-foreground">
-        s.{hedefSayfa}
-      </span>
       <span
         className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0 text-[10px] font-medium leading-tight tabular-nums ${renk}`}
         title={`${yapilan} / ${hedef} sf · hedef sayfa ${hedefSayfa} · ${etiket}`}
