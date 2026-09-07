@@ -48,7 +48,6 @@ import {
   talebeEkle,
   talebeGuncelle,
   talebeSil,
-  topluHedefGuncelle,
   type Talebe,
   type SayfaKaydi,
 } from "@/lib/talebeler";
@@ -118,15 +117,6 @@ function sayfaOnceFn(t: Talebe, esik: number) {
     : t.gecmis[0]?.sayfa ?? t.sayfa;
 }
 
-function ilerleme(t: Talebe, baslangic: number, bitis: number) {
-  const baz = sayfaOnceFn(t, baslangic);
-  const son = sayfaOnceFn(t, bitis);
-  return Math.max(0, son - baz);
-}
-
-function haftaBazSayfa(t: Talebe, baslangic: number) {
-  return sayfaOnceFn(t, baslangic);
-}
 
 function haftaEtiket(baslangic: number) {
   const b = new Date(baslangic);
@@ -201,7 +191,7 @@ function Index() {
 
   const HAFTA_MS = 7 * 24 * 60 * 60 * 1000;
   const buHafta = haftaBaslangici();
-  const haftaSonu = seciliHafta + HAFTA_MS;
+  
   const haftaFarki = Math.round((seciliHafta - buHafta) / HAFTA_MS);
   const haftaBasligi =
     haftaFarki === 0
@@ -285,20 +275,11 @@ function Index() {
       isim: `Talebe ${yeniNo}`,
       kiraat: false,
       sayfa: 1,
-      hedefHaftalik: 5,
       gecmis: [{ t: Date.now(), sayfa: 1 }],
       sira: enBuyukSira + 1,
     });
   };
 
-  const haftalikToplam = useMemo(
-    () =>
-      talebeler.reduce(
-        (acc, t) => acc + ilerleme(t, seciliHafta, haftaSonu),
-        0,
-      ),
-    [talebeler, seciliHafta, haftaSonu],
-  );
 
   const ozet = useMemo(() => {
     const toplam = talebeler.length;
@@ -308,26 +289,6 @@ function Index() {
     return { toplam, kiraatSayi };
   }, [talebeler, seciliHafta]);
 
-  const [topluHedefTaslak, setTopluHedefTaslak] = useState("5");
-  const [topluHedefHata, setTopluHedefHata] = useState<string | null>(null);
-
-  const topluHedefUygula = () => {
-    const d = topluHedefTaslak.trim();
-    if (!/^\d+$/.test(d)) {
-      setTopluHedefHata("Yalnızca rakam giriniz");
-      return;
-    }
-    const n = Number(d);
-    if (n < 0 || n > 200) {
-      setTopluHedefHata("0 ile 200 arasında olmalı");
-      return;
-    }
-    setTopluHedefHata(null);
-    void topluHedefGuncelle(
-      talebeler.map((t) => t.id),
-      n,
-    );
-  };
 
   const girisYap = () => {
     if (parolaTaslak === mevcutParola()) {
@@ -483,33 +444,6 @@ function Index() {
           />
         </div>
 
-        {hocaModu && (
-          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border/60 bg-secondary/30 px-3 py-2">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground">
-              Toplu hedef
-            </span>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={200}
-              value={topluHedefTaslak}
-              onChange={(e) => {
-                setTopluHedefTaslak(e.target.value);
-                setTopluHedefHata(null);
-              }}
-              className="h-8 w-24"
-              aria-invalid={topluHedefHata ? true : undefined}
-            />
-            <span className="text-xs text-muted-foreground">sf / hafta</span>
-            <Button size="sm" onClick={topluHedefUygula}>
-              Tümüne uygula
-            </Button>
-            {topluHedefHata && (
-              <span className="text-xs text-destructive">{topluHedefHata}</span>
-            )}
-          </div>
-        )}
 
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border/60 bg-secondary/30 px-3 py-2">
           <div className="flex items-center gap-2 text-sm">
@@ -576,16 +510,13 @@ function Index() {
                   </TableHead>
                   <TableHead className="text-center">Sayfa</TableHead>
                   <TableHead className="text-center">Cüz</TableHead>
-                  <TableHead className="text-center">Hedef</TableHead>
                   {hocaModu && (
                     <TableHead className="w-24 text-right">İşlem</TableHead>
                   )}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {talebeler.map((t, i) => {
-                  const hafta = ilerleme(t, seciliHafta, haftaSonu);
-                  return (
+                {talebeler.map((t, i) => (
                   <TableRow key={t.id} className="hover:bg-muted/30">
                     <TableCell className="text-center text-xs text-muted-foreground">
                       {i + 1}
@@ -603,13 +534,6 @@ function Index() {
                     </TableCell>
                     <TableCell className="text-center tabular-nums text-muted-foreground">
                       {cuzHesapla(t.sayfa)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <HedefRozet
-                        yapilan={hafta}
-                        hedef={t.hedefHaftalik}
-                        bazSayfa={haftaBazSayfa(t, seciliHafta)}
-                      />
                     </TableCell>
                     {hocaModu && (
                       <TableCell className="text-right">
@@ -634,12 +558,11 @@ function Index() {
                       </TableCell>
                     )}
                   </TableRow>
-                  );
-                })}
+                ))}
                 {!yuklendi && talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={hocaModu ? 8 : 7}
+                      colSpan={hocaModu ? 7 : 6}
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
                       <span className="inline-flex items-center gap-2">
@@ -652,7 +575,7 @@ function Index() {
                 {yuklendi && yuklemeHata && (
                   <TableRow>
                     <TableCell
-                      colSpan={hocaModu ? 8 : 7}
+                      colSpan={hocaModu ? 7 : 6}
                       className="py-10 text-center text-sm text-destructive"
                     >
                       Bağlantı hatası: {yuklemeHata}
@@ -662,7 +585,7 @@ function Index() {
                 {yuklendi && !yuklemeHata && talebeler.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={hocaModu ? 8 : 7}
+                      colSpan={hocaModu ? 7 : 6}
                       className="py-10 text-center text-sm text-muted-foreground"
                     >
                       Henüz talebe yok.
@@ -903,58 +826,6 @@ function GunDurum({
   );
 }
 
-function IlerlemeRozet({ sayfa }: { sayfa: number }) {
-  return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium tabular-nums ${
-        sayfa > 0
-          ? "bg-primary/10 text-primary"
-          : "bg-muted text-muted-foreground"
-      }`}
-    >
-      {sayfa} sf
-    </span>
-  );
-}
-
-function HedefRozet({
-  yapilan,
-  hedef,
-  bazSayfa,
-}: {
-  yapilan: number;
-  hedef: number;
-  bazSayfa: number;
-}) {
-  if (!hedef || hedef <= 0) {
-    return <span className="text-xs text-muted-foreground">—</span>;
-  }
-  const hedefSayfa = Math.min(604, bazSayfa + hedef);
-  const oran = Math.round((yapilan / hedef) * 100);
-  let renk = "bg-destructive/10 text-destructive";
-  let nokta = "bg-destructive";
-  let etiket = "Geride";
-  if (oran >= 100) {
-    renk = "bg-primary/10 text-primary";
-    nokta = "bg-primary";
-    etiket = "Hedefte";
-  } else if (oran >= 50) {
-    renk = "bg-amber-500/15 text-amber-600 dark:text-amber-400";
-    nokta = "bg-amber-500";
-    etiket = "Yolda";
-  }
-  return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span
-        className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0 text-[10px] font-medium leading-tight tabular-nums ${renk}`}
-        title={`${yapilan} / ${hedef} sf · hedef sayfa ${hedefSayfa} · ${etiket}`}
-      >
-        <span className={`h-1 w-1 rounded-full ${nokta}`} />
-        %{oran}
-      </span>
-    </div>
-  );
-}
 
 function DuzenleDiyalog({
   talebe,
@@ -969,17 +840,12 @@ function DuzenleDiyalog({
   
   const [sayfaTaslak, setSayfaTaslak] = useState("1");
   const [sayfaHata, setSayfaHata] = useState<string | null>(null);
-  const [hedefTaslak, setHedefTaslak] = useState("5");
-  const [hedefHata, setHedefHata] = useState<string | null>(null);
 
   useEffect(() => {
     if (talebe) {
       setIsim(talebe.isim);
-      
       setSayfaTaslak(String(talebe.sayfa));
-      setHedefTaslak(String(talebe.hedefHaftalik ?? 5));
       setSayfaHata(null);
-      setHedefHata(null);
     }
   }, [talebe]);
 
@@ -1001,31 +867,12 @@ function DuzenleDiyalog({
     return n;
   };
 
-  const hedefDogrula = (deger: string): number | null => {
-    if (deger.trim() === "") {
-      setHedefHata("Hedef boş olamaz");
-      return null;
-    }
-    if (!/^\d+$/.test(deger)) {
-      setHedefHata("Yalnızca rakam giriniz");
-      return null;
-    }
-    const n = Number(deger);
-    if (n < 0 || n > 200) {
-      setHedefHata("Hedef 0 ile 200 arasında olmalı");
-      return null;
-    }
-    setHedefHata(null);
-    return n;
-  };
-
   const kaydet = () => {
     const sayfa = sayfaDogrula(sayfaTaslak);
-    const hedef = hedefDogrula(hedefTaslak);
-    if (sayfa === null || hedef === null) return;
+    if (sayfa === null) return;
     const temizIsim = isim.trim().slice(0, 60);
     if (!temizIsim) return;
-    onKaydet({ isim: temizIsim, sayfa, hedefHaftalik: hedef });
+    onKaydet({ isim: temizIsim, sayfa });
   };
 
   const cuz = /^\d+$/.test(sayfaTaslak)
@@ -1087,32 +934,6 @@ function DuzenleDiyalog({
             </div>
           </div>
           {sayfaHata && <p className="text-xs text-destructive">{sayfaHata}</p>}
-
-          <div className="space-y-1.5">
-            <Label>Haftalık hedef (sayfa)</Label>
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={200}
-              value={hedefTaslak}
-              onChange={(e) => {
-                setHedefTaslak(e.target.value);
-                hedefDogrula(e.target.value);
-              }}
-              aria-invalid={hedefHata ? true : undefined}
-              className={
-                hedefHata ? "border-destructive focus-visible:ring-destructive" : ""
-              }
-            />
-            {hedefHata ? (
-              <p className="text-xs text-destructive">{hedefHata}</p>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                0 yazarsanız hedef takibi devre dışı kalır.
-              </p>
-            )}
-          </div>
         </div>
 
         <DialogFooter>
@@ -1121,45 +942,12 @@ function DuzenleDiyalog({
           </Button>
           <Button
             onClick={kaydet}
-            disabled={!!sayfaHata || !!hedefHata || !isim.trim()}
+            disabled={!!sayfaHata || !isim.trim()}
           >
             Kaydet
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function DersKutu({
-  etiket,
-  verildi,
-  onChange,
-}: {
-  etiket: string;
-  verildi: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label
-      className={`flex cursor-pointer items-center justify-between rounded-md border px-3 py-2.5 transition-colors ${
-        verildi
-          ? "border-primary/40 bg-primary/5"
-          : "border-border bg-card hover:bg-muted/50"
-      }`}
-    >
-      <span className="text-sm font-medium text-foreground">{etiket}</span>
-      <div className="flex items-center gap-2">
-        <span
-          className={`text-xs ${verildi ? "text-primary" : "text-muted-foreground"}`}
-        >
-          {verildi ? "Verdi" : "Vermedi"}
-        </span>
-        <Checkbox
-          checked={verildi}
-          onCheckedChange={(v) => onChange(Boolean(v))}
-        />
-      </div>
-    </label>
   );
 }
