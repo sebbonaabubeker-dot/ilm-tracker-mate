@@ -339,7 +339,7 @@ function Index() {
           </div>
           <div>
             <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
-              SİEC DESSİE KURSU
+              SİEC JİGJİGA KURSU
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Talebe Başarı Paneli
