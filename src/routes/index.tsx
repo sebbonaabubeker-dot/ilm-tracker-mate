@@ -55,11 +55,21 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Talebe Takip — Hocaefendi Paneli" },
+      { title: "SİEC JİGJİGA KURSU — Talebe Başarı Paneli" },
       {
         name: "description",
-        content:
-          "Talebelerin kıraat ve Kur'an-ı Kerim ilerlemesini takip edin.",
+        content: "SİEC JİGJİGA Kursu talebe başarı paneli: Kıraat takibi, Kur'an-ı Kerim sayfa ve cüz ilerlemesi.",
+      },
+      { property: "og:title", content: "SİEC JİGJİGA KURSU — Talebe Başarı Paneli" },
+      {
+        property: "og:description",
+        content: "SİEC JİGJİGA Kursu talebe başarı paneli: Kıraat takibi, Kur'an-ı Kerim sayfa ve cüz ilerlemesi.",
+      },
+      { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "SİEC JİGJİGA KURSU — Talebe Başarı Paneli" },
+      {
+        name: "twitter:description",
+        content: "SİEC JİGJİGA Kursu talebe başarı paneli: Kıraat takibi, Kur'an-ı Kerim sayfa ve cüz ilerlemesi.",
       },
     ],
   }),
