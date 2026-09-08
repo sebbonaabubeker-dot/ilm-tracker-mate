@@ -74,12 +74,6 @@ export const Route = createFileRoute("/")({
     ],
   }),
   component: Index,
-        content:
-          "Talebelerin kıraat ve Kur'an-ı Kerim ilerlemesini takip edin.",
-      },
-    ],
-  }),
-  component: Index,
 });
 
 // (Talebe / SayfaKaydi tipleri ve veri katmanı '@/lib/talebeler' içindedir)
